@@ -36,6 +36,7 @@ import java.util.List;
  * <li>3. Be careful, address returned is always less than 0.</li>
  * <li>4. Pls keep this file small.</li>
  */
+//consume queue 文件扩展
 public class ConsumeQueueExt {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
@@ -407,7 +408,7 @@ public class ConsumeQueueExt {
     /**
      * Store unit.
      */
-    public static class CqExtUnit {
+    public static class CqExtUnit {//consume queue 扩展单元
         public static final short MIN_EXT_UNIT_SIZE
             = 2 * 1 // size, 32k max
             + 8 * 2 // msg time + tagCode

@@ -19,39 +19,40 @@ package org.apache.rocketmq.store.config;
 import java.io.File;
 
 public class StorePathConfigHelper {
-
+    //${user.home}/store/consumequeue
     public static String getStorePathConsumeQueue(final String rootDir) {
         return rootDir + File.separator + "consumequeue";
     }
-
+    //${user.home}/store/consumequeue_ext
     public static String getStorePathConsumeQueueExt(final String rootDir) {
         return rootDir + File.separator + "consumequeue_ext";
     }
-
+    //${user.home}/store/index
     public static String getStorePathIndex(final String rootDir) {
         return rootDir + File.separator + "index";
     }
-
+    //${user.home}/store/checkpoint
     public static String getStoreCheckpoint(final String rootDir) {
         return rootDir + File.separator + "checkpoint";
     }
-
+    //${user.home}/store/abort
     public static String getAbortFile(final String rootDir) {
         return rootDir + File.separator + "abort";
     }
 
+    //${user.home}/store/lock 锁文件
     public static String getLockFile(final String rootDir) {
         return rootDir + File.separator + "lock";
     }
-
+    //${user.home}/store/config/delayOffset.json
     public static String getDelayOffsetStorePath(final String rootDir) {
         return rootDir + File.separator + "config" + File.separator + "delayOffset.json";
     }
-
+    //${user.home}/store/transaction/statetable
     public static String getTranStateTableStorePath(final String rootDir) {
         return rootDir + File.separator + "transaction" + File.separator + "statetable";
     }
-
+    //${user.home}/store/transaction/redolog
     public static String getTranRedoLogStorePath(final String rootDir) {
         return rootDir + File.separator + "transaction" + File.separator + "redolog";
     }

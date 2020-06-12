@@ -41,11 +41,14 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.remoting.protocol.LanguageCode;
 
+//push consumer 实现
 public class PushConsumerImpl implements PushConsumer {
     private final DefaultMQPushConsumer rocketmqPushConsumer;
     private final KeyValue properties;
     private boolean started = false;
-    private final Map<String, MessageListener> subscribeTable = new ConcurrentHashMap<>();
+    //订阅table
+    // queueName -> messageListener
+    private final Map<String, MessageListener> subscribeTable = new ConcurrentHashMap();
     private final ClientConfig clientConfig;
 
     public PushConsumerImpl(final KeyValue properties) {
@@ -161,12 +164,14 @@ public class PushConsumerImpl implements PushConsumer {
         this.started = false;
     }
 
+    //messageListener 消息消费，并发
     class MessageListenerImpl implements MessageListenerConcurrently {
 
         @Override
         public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> rmqMsgList,
             ConsumeConcurrentlyContext contextRMQ) {
             MessageExt rmqMsg = rmqMsgList.get(0);
+            //oms msg
             BytesMessage omsMsg = OMSUtil.msgConvert(rmqMsg);
 
             MessageListener listener = PushConsumerImpl.this.subscribeTable.get(rmqMsg.getTopic());
@@ -188,8 +193,10 @@ public class PushConsumerImpl implements PushConsumer {
                 }
 
                 @Override
-                public void ack() {
+                public void ack() {//ack 确认
+                    //countDown
                     sync.countDown();
+                    //更新context消费状态
                     contextProperties.put(NonStandardKeys.MESSAGE_CONSUME_STATUS,
                         ConsumeConcurrentlyStatus.CONSUME_SUCCESS.name());
                 }
@@ -198,7 +205,7 @@ public class PushConsumerImpl implements PushConsumer {
             listener.onReceived(omsMsg, context);
             long costs = System.currentTimeMillis() - begin;
             long timeoutMills = clientConfig.getRmqMessageConsumeTimeout() * 60 * 1000;
-            try {
+            try {//等待
                 sync.await(Math.max(0, timeoutMills - costs), TimeUnit.MILLISECONDS);
             } catch (InterruptedException ignore) {
             }

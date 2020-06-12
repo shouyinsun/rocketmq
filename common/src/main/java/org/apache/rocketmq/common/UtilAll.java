@@ -520,17 +520,17 @@ public class UtilAll {
         return sb.toString();
     }
 
-    public static byte[] getIP() {
+    public static byte[] getIP() {//get local ip
         try {
             Enumeration allNetInterfaces = NetworkInterface.getNetworkInterfaces();
-            InetAddress ip = null;
+            InetAddress ip ;
             byte[] internalIP = null;
             while (allNetInterfaces.hasMoreElements()) {
                 NetworkInterface netInterface = (NetworkInterface) allNetInterfaces.nextElement();
                 Enumeration addresses = netInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     ip = (InetAddress) addresses.nextElement();
-                    if (ip != null && ip instanceof Inet4Address) {
+                    if (ip != null && ip instanceof Inet4Address) {//ipv4
                         byte[] ipByte = ip.getAddress();
                         if (ipByte.length == 4) {
                             if (ipCheck(ipByte)) {
@@ -541,7 +541,7 @@ public class UtilAll {
                                 }
                             }
                         }
-                    } else if (ip != null && ip instanceof Inet6Address) {
+                    } else if (ip != null && ip instanceof Inet6Address) {//ipv6
                         byte[] ipByte = ip.getAddress();
                         if (ipByte.length == 16) {
                             if (ipV6Check(ipByte)) {

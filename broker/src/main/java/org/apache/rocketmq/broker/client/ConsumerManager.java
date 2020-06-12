@@ -35,9 +35,11 @@ import org.apache.rocketmq.remoting.common.RemotingUtil;
 
 public class ConsumerManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
+    //channel 过期时间,默认2min
     private static final long CHANNEL_EXPIRED_TIMEOUT = 1000 * 120;
+    //消费组信息  groupName ->  ConsumerGroupInfo
     private final ConcurrentMap<String/* Group */, ConsumerGroupInfo> consumerTable =
-        new ConcurrentHashMap<String, ConsumerGroupInfo>(1024);
+        new ConcurrentHashMap(1024);
     private final ConsumerIdsChangeListener consumerIdsChangeListener;
 
     public ConsumerManager(final ConsumerIdsChangeListener consumerIdsChangeListener) {

@@ -27,13 +27,18 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.common.message.MessageQueue;
 
+//RebalanceLock
+// 维护messageQueue的锁
+// 视为分布式锁
 public class RebalanceLockManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.REBALANCE_LOCK_LOGGER_NAME);
+    //rebalances锁的最大存活时间 60s，锁定60s,锁自动过期
     private final static long REBALANCE_LOCK_MAX_LIVE_TIME = Long.parseLong(System.getProperty(
         "rocketmq.broker.rebalance.lockMaxLiveTime", "60000"));
     private final Lock lock = new ReentrantLock();
+    //messageQueue锁定  consumeGroup -> (MessageQueue -> LockEntry)
     private final ConcurrentMap<String/* group */, ConcurrentHashMap<MessageQueue, LockEntry>> mqLockTable =
-        new ConcurrentHashMap<String, ConcurrentHashMap<MessageQueue, LockEntry>>(1024);
+        new ConcurrentHashMap(1024);
 
     public boolean tryLock(final String group, final MessageQueue mq, final String clientId) {
 
@@ -97,6 +102,7 @@ public class RebalanceLockManager {
         return true;
     }
 
+    //queue 是否锁定
     private boolean isLocked(final String group, final MessageQueue mq, final String clientId) {
         ConcurrentHashMap<MessageQueue, LockEntry> groupValue = this.mqLockTable.get(group);
         if (groupValue != null) {
@@ -113,11 +119,13 @@ public class RebalanceLockManager {
 
         return false;
     }
-
+    //锁定mqs
     public Set<MessageQueue> tryLockBatch(final String group, final Set<MessageQueue> mqs,
         final String clientId) {
-        Set<MessageQueue> lockedMqs = new HashSet<MessageQueue>(mqs.size());
-        Set<MessageQueue> notLockedMqs = new HashSet<MessageQueue>(mqs.size());
+        //锁定的queue
+        Set<MessageQueue> lockedMqs = new HashSet(mqs.size());
+        //没有锁定的queue
+        Set<MessageQueue> notLockedMqs = new HashSet(mqs.size());
 
         for (MessageQueue mq : mqs) {
             if (this.isLocked(group, mq, clientId)) {
@@ -232,7 +240,9 @@ public class RebalanceLockManager {
     }
 
     static class LockEntry {
+        //clientId
         private String clientId;
+        //时间戳
         private volatile long lastUpdateTimestamp = System.currentTimeMillis();
 
         public String getClientId() {

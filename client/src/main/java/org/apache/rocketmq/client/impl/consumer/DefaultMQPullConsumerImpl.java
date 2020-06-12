@@ -70,6 +70,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
  * This class will be removed in 2022, and a better implementation {@link DefaultLitePullConsumerImpl} is recommend to use
  * in the scenario of actively pulling messages.
  */
+//默认的拉取消费者实现
 @Deprecated
 public class DefaultMQPullConsumerImpl implements MQConsumerInner {
     private final InternalLogger log = ClientLogger.getLog();
@@ -630,7 +631,9 @@ public class DefaultMQPullConsumerImpl implements MQConsumerInner {
 
                 this.copySubscription();
 
+                //集群模式
                 if (this.defaultMQPullConsumer.getMessageModel() == MessageModel.CLUSTERING) {
+                    //instanceName设置为pid
                     this.defaultMQPullConsumer.changeInstanceNameToPID();
                 }
 
@@ -650,10 +653,10 @@ public class DefaultMQPullConsumerImpl implements MQConsumerInner {
                     this.offsetStore = this.defaultMQPullConsumer.getOffsetStore();
                 } else {
                     switch (this.defaultMQPullConsumer.getMessageModel()) {
-                        case BROADCASTING:
+                        case BROADCASTING://broadcasting offset本地文件存储
                             this.offsetStore = new LocalFileOffsetStore(this.mQClientFactory, this.defaultMQPullConsumer.getConsumerGroup());
                             break;
-                        case CLUSTERING:
+                        case CLUSTERING://clustering offset远程存储
                             this.offsetStore = new RemoteBrokerOffsetStore(this.mQClientFactory, this.defaultMQPullConsumer.getConsumerGroup());
                             break;
                         default:

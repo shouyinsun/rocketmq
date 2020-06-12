@@ -26,7 +26,7 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.ChannelEventListener;
-
+//看家服务
 public class ClientHousekeepingService implements ChannelEventListener {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -40,7 +40,7 @@ public class ClientHousekeepingService implements ChannelEventListener {
 
     public void start() {
 
-        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {//10s扫描一次非活跃连接
             @Override
             public void run() {
                 try {
@@ -68,21 +68,21 @@ public class ClientHousekeepingService implements ChannelEventListener {
     }
 
     @Override
-    public void onChannelClose(String remoteAddr, Channel channel) {
+    public void onChannelClose(String remoteAddr, Channel channel) {//channel close
         this.brokerController.getProducerManager().doChannelCloseEvent(remoteAddr, channel);
         this.brokerController.getConsumerManager().doChannelCloseEvent(remoteAddr, channel);
         this.brokerController.getFilterServerManager().doChannelCloseEvent(remoteAddr, channel);
     }
 
     @Override
-    public void onChannelException(String remoteAddr, Channel channel) {
+    public void onChannelException(String remoteAddr, Channel channel) {//channel exception
         this.brokerController.getProducerManager().doChannelCloseEvent(remoteAddr, channel);
         this.brokerController.getConsumerManager().doChannelCloseEvent(remoteAddr, channel);
         this.brokerController.getFilterServerManager().doChannelCloseEvent(remoteAddr, channel);
     }
 
     @Override
-    public void onChannelIdle(String remoteAddr, Channel channel) {
+    public void onChannelIdle(String remoteAddr, Channel channel) {//channel idle
         this.brokerController.getProducerManager().doChannelCloseEvent(remoteAddr, channel);
         this.brokerController.getConsumerManager().doChannelCloseEvent(remoteAddr, channel);
         this.brokerController.getFilterServerManager().doChannelCloseEvent(remoteAddr, channel);

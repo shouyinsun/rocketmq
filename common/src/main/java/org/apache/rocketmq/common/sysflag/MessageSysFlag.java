@@ -16,14 +16,23 @@
  */
 package org.apache.rocketmq.common.sysflag;
 
+//消息系统标志位
 public class MessageSysFlag {
+    //压缩标志位 00000001
     public final static int COMPRESSED_FLAG = 0x1;
+    //多tag标志位 00000010
     public final static int MULTI_TAGS_FLAG = 0x1 << 1;
+    //无事务 00000000
     public final static int TRANSACTION_NOT_TYPE = 0;
+    //事务准备 00000100
     public final static int TRANSACTION_PREPARED_TYPE = 0x1 << 2;
+    //事务提交 00001000
     public final static int TRANSACTION_COMMIT_TYPE = 0x2 << 2;
+    //事务回滚 00001100
     public final static int TRANSACTION_ROLLBACK_TYPE = 0x3 << 2;
+    //00010000  消息产生host是ipv6
     public final static int BORNHOST_V6_FLAG = 0x1 << 4;
+    //00100000  消息存储host是ipv6
     public final static int STOREHOSTADDRESS_V6_FLAG = 0x1 << 5;
 
     public static int getTransactionValue(final int flag) {

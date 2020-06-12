@@ -54,20 +54,29 @@ import org.apache.rocketmq.store.schedule.ScheduleMessageService;
  * Store all metadata downtime for recovery, data protection reliability
  */
 public class DLedgerCommitLog extends CommitLog {
+    //基于raft协议实现的集群内的一个节点
+    // 用DLedgerServer实例表示
     private final DLedgerServer dLedgerServer;
+    //DLeger 配置
     private final DLedgerConfig dLedgerConfig;
+    //基于文件映射的存储实现
     private final DLedgerMmapFileStore dLedgerFileStore;
     private final MmapFileList dLedgerFileList;
 
     //The id identifies the broker role, 0 means master, others means slave
+    //0 master 其他的是slave
     private final int id;
 
     private final MessageSerializer messageSerializer;
+    //日志追加所持有锁时间
     private volatile long beginTimeInDledgerLock = 0;
 
     //This offset separate the old commitlog from dledger commitlog
+    //记录的旧commitlog文件中的最大偏移量
+    // 如果访问的偏移量大于它,则访问dledger管理的文件
     private long dividedCommitlogOffset = -1;
 
+    //是否正在恢复旧的commitlog文件
     private boolean isInrecoveringOldCommitlog = false;
 
     public DLedgerCommitLog(final DefaultMessageStore defaultMessageStore) {
@@ -85,6 +94,7 @@ public class DLedgerCommitLog extends CommitLog {
         id = Integer.valueOf(dLedgerConfig.getSelfId().substring(1)) + 1;
         dLedgerServer = new DLedgerServer(dLedgerConfig);
         dLedgerFileStore = (DLedgerMmapFileStore) dLedgerServer.getdLedgerStore();
+        //append hook
         DLedgerMmapFileStore.AppendHook appendHook = (entry, buffer, bodyOffset) -> {
             assert bodyOffset == DLedgerEntry.BODY_OFFSET;
             buffer.position(buffer.position() + bodyOffset + MessageDecoder.PHY_POS_POSITION);

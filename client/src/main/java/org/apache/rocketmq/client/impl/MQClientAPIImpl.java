@@ -164,6 +164,8 @@ import org.apache.rocketmq.remoting.protocol.LanguageCode;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+//mqClient api
+// netty client
 public class MQClientAPIImpl {
 
     private final static InternalLogger log = ClientLogger.getLog();
@@ -185,16 +187,22 @@ public class MQClientAPIImpl {
         RPCHook rpcHook, final ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         topAddressing = new TopAddressing(MixAll.getWSAddr(), clientConfig.getUnitName());
+        //netty client
         this.remotingClient = new NettyRemotingClient(nettyClientConfig, null);
         this.clientRemotingProcessor = clientRemotingProcessor;
 
         this.remotingClient.registerRPCHook(rpcHook);
+
+        //检查事务状态
         this.remotingClient.registerProcessor(RequestCode.CHECK_TRANSACTION_STATE, this.clientRemotingProcessor, null);
 
+        //通知consumerId变化
         this.remotingClient.registerProcessor(RequestCode.NOTIFY_CONSUMER_IDS_CHANGED, this.clientRemotingProcessor, null);
 
+        //reset consumer 偏移
         this.remotingClient.registerProcessor(RequestCode.RESET_CONSUMER_CLIENT_OFFSET, this.clientRemotingProcessor, null);
 
+        //consumer状态
         this.remotingClient.registerProcessor(RequestCode.GET_CONSUMER_STATUS_FROM_CLIENT, this.clientRemotingProcessor, null);
 
         this.remotingClient.registerProcessor(RequestCode.GET_CONSUMER_RUNNING_INFO, this.clientRemotingProcessor, null);
@@ -235,7 +243,7 @@ public class MQClientAPIImpl {
         this.remotingClient.updateNameServerAddressList(list);
     }
 
-    public void start() {
+    public void start() {//start,netty client
         this.remotingClient.start();
     }
 
@@ -265,22 +273,24 @@ public class MQClientAPIImpl {
         throw new MQClientException(response.getCode(), response.getRemark());
 
     }
-
+    //broker上,创建topic
     public void createTopic(final String addr, final String defaultTopic, final TopicConfig topicConfig,
         final long timeoutMillis)
         throws RemotingException, MQBrokerException, InterruptedException, MQClientException {
         CreateTopicRequestHeader requestHeader = new CreateTopicRequestHeader();
         requestHeader.setTopic(topicConfig.getTopicName());
         requestHeader.setDefaultTopic(defaultTopic);
+        //读写队列数
         requestHeader.setReadQueueNums(topicConfig.getReadQueueNums());
         requestHeader.setWriteQueueNums(topicConfig.getWriteQueueNums());
+        //权限
         requestHeader.setPerm(topicConfig.getPerm());
         requestHeader.setTopicFilterType(topicConfig.getTopicFilterType().name());
         requestHeader.setTopicSysFlag(topicConfig.getTopicSysFlag());
         requestHeader.setOrder(topicConfig.isOrder());
-
+        //创建或更新topic
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.UPDATE_AND_CREATE_TOPIC, requestHeader);
-
+        //同步创建
         RemotingCommand response = this.remotingClient.invokeSync(MixAll.brokerVIPChannel(this.clientConfig.isVipChannelEnabled(), addr),
             request, timeoutMillis);
         assert response != null;
@@ -709,6 +719,7 @@ public class MQClientAPIImpl {
         throw new MQBrokerException(response.getCode(), response.getRemark());
     }
 
+    //消息拉取
     public PullResult pullMessage(
         final String addr,
         final PullMessageRequestHeader requestHeader,
@@ -719,13 +730,13 @@ public class MQClientAPIImpl {
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.PULL_MESSAGE, requestHeader);
 
         switch (communicationMode) {
-            case ONEWAY:
+            case ONEWAY://拉取没有oneway
                 assert false;
                 return null;
-            case ASYNC:
+            case ASYNC://异步，回调
                 this.pullMessageAsync(addr, request, timeoutMillis, pullCallback);
                 return null;
-            case SYNC:
+            case SYNC://同步
                 return this.pullMessageSync(addr, request, timeoutMillis);
             default:
                 assert false;
@@ -735,7 +746,7 @@ public class MQClientAPIImpl {
         return null;
     }
 
-    private void pullMessageAsync(
+    private void pullMessageAsync(//异步拉取,callback执行
         final String addr,
         final RemotingCommand request,
         final long timeoutMillis,
@@ -767,7 +778,7 @@ public class MQClientAPIImpl {
         });
     }
 
-    private PullResult pullMessageSync(
+    private PullResult pullMessageSync(//同步拉取
         final String addr,
         final RemotingCommand request,
         final long timeoutMillis
@@ -779,7 +790,7 @@ public class MQClientAPIImpl {
 
     private PullResult processPullResponse(
         final RemotingCommand response) throws MQBrokerException, RemotingCommandException {
-        PullStatus pullStatus = PullStatus.NO_NEW_MSG;
+        PullStatus pullStatus;
         switch (response.getCode()) {
             case ResponseCode.SUCCESS:
                 pullStatus = PullStatus.FOUND;
@@ -1092,7 +1103,8 @@ public class MQClientAPIImpl {
         RemotingCommand response = this.remotingClient.invokeSync(addr, request, timeoutMillis);
         return response.getCode() == ResponseCode.SUCCESS;
     }
-
+    //CONSUMER_SEND_MSG_BACK
+    // consumer send back
     public void consumerSendMessageBack(
         final String addr,
         final MessageExt msg,
@@ -1369,7 +1381,7 @@ public class MQClientAPIImpl {
         RemotingCommand response = this.remotingClient.invokeSync(null, request, timeoutMillis);
         assert response != null;
         switch (response.getCode()) {
-            case ResponseCode.TOPIC_NOT_EXIST: {
+            case ResponseCode.TOPIC_NOT_EXIST: {//not exist
                 if (allowTopicNotExist && !topic.equals(MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC)) {
                     log.warn("get Topic [{}] RouteInfoFromNameServer is not exist value", topic);
                 }

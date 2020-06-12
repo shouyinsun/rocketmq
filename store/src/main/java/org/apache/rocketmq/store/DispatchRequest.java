@@ -21,10 +21,12 @@ import java.util.Map;
 public class DispatchRequest {
     private final String topic;
     private final int queueId;
+    //commitLog 文件偏移
     private final long commitLogOffset;
     private int msgSize;
     private final long tagsCode;
     private final long storeTimestamp;
+    //consume queue 文件偏移
     private final long consumeQueueOffset;
     private final String keys;
     private final boolean success;
@@ -33,7 +35,7 @@ public class DispatchRequest {
     private final int sysFlag;
     private final long preparedTransactionOffset;
     private final Map<String, String> propertiesMap;
-    private byte[] bitMap;
+    private byte[] bitMap;//bitMap bit数组
 
     private int bufferSize = -1;//the buffer size maybe larger than the msg size if the message is wrapped by something
 

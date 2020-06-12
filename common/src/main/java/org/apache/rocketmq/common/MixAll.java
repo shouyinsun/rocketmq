@@ -55,6 +55,7 @@ public class MixAll {
     public static final String WS_DOMAIN_SUBGROUP = System.getProperty("rocketmq.namesrv.domain.subgroup", "nsaddr");
     //http://jmenv.tbsite.net:8080/rocketmq/nsaddr
     //public static final String WS_ADDR = "http://" + WS_DOMAIN_NAME + ":8080/rocketmq/" + WS_DOMAIN_SUBGROUP;
+    //自动创建的topic
     public static final String AUTO_CREATE_TOPIC_KEY_TOPIC = "TBW102"; // Will be created at broker when isAutoCreateTopicEnable
     public static final String BENCHMARK_TOPIC = "BenchmarkTest";
     public static final String DEFAULT_PRODUCER_GROUP = "DEFAULT_PRODUCER";
@@ -71,21 +72,28 @@ public class MixAll {
     public static final String CID_ONSAPI_PERMISSION_GROUP = "CID_ONSAPI_PERMISSION";
     public static final String CID_ONSAPI_OWNER_GROUP = "CID_ONSAPI_OWNER";
     public static final String CID_ONSAPI_PULL_GROUP = "CID_ONSAPI_PULL";
+    //系统消费组 前缀
     public static final String CID_RMQ_SYS_PREFIX = "CID_RMQ_SYS_";
     public static final List<String> LOCAL_INET_ADDRESS = getLocalInetAddress();
     public static final String LOCALHOST = localhost();
     public static final String DEFAULT_CHARSET = "UTF-8";
     public static final long MASTER_ID = 0L;
     public static final long CURRENT_JVM_PID = getPID();
+    //重试topic前缀 %RETRY%
     public static final String RETRY_GROUP_TOPIC_PREFIX = "%RETRY%";
+    //死信topic前缀 %DLQ%
     public static final String DLQ_GROUP_TOPIC_PREFIX = "%DLQ%";
     public static final String REPLY_TOPIC_POSTFIX = "REPLY_TOPIC";
+    //系统topic前缀
     public static final String SYSTEM_TOPIC_PREFIX = "rmq_sys_";
     public static final String UNIQUE_MSG_QUERY_FLAG = "_UNIQUE_KEY_QUERY";
     public static final String DEFAULT_TRACE_REGION_ID = "DefaultRegion";
     public static final String CONSUME_CONTEXT_TYPE = "ConsumeContextType";
+    //事务半消息 topic
     public static final String RMQ_SYS_TRANS_HALF_TOPIC = "RMQ_SYS_TRANS_HALF_TOPIC";
+    //系统trace topic
     public static final String RMQ_SYS_TRACE_TOPIC = "RMQ_SYS_TRACE_TOPIC";
+    //事务半消息操作 topic ，删除标志
     public static final String RMQ_SYS_TRANS_OP_HALF_TOPIC = "RMQ_SYS_TRANS_OP_HALF_TOPIC";
     public static final String TRANS_CHECK_MAX_TIME_TOPIC = "TRANS_CHECK_MAX_TIME_TOPIC";
     public static final String CID_SYS_RMQ_TRANS = "CID_RMQ_SYS_TRANS";
@@ -94,6 +102,7 @@ public class MixAll {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
     public static String getWSAddr() {
+        //环境变量中获取domain信息
         String wsDomainName = System.getProperty("rocketmq.namesrv.domain", DEFAULT_NAMESRV_ADDR_LOOKUP);
         String wsDomainSubgroup = System.getProperty("rocketmq.namesrv.domain.subgroup", "nsaddr");
         String wsAddr = "http://" + wsDomainName + ":8080/rocketmq/" + wsDomainSubgroup;
@@ -103,7 +112,7 @@ public class MixAll {
         return wsAddr;
     }
 
-    public static String getRetryTopic(final String consumerGroup) {
+    public static String getRetryTopic(final String consumerGroup) {//重试topic  "%RETRY%"consumerGroupName
         return RETRY_GROUP_TOPIC_PREFIX + consumerGroup;
     }
 
@@ -111,7 +120,7 @@ public class MixAll {
         return clusterName + "_" + REPLY_TOPIC_POSTFIX;
     }
 
-    public static boolean isSysConsumerGroup(final String consumerGroup) {
+    public static boolean isSysConsumerGroup(final String consumerGroup) {//系统内置的消费组
         return consumerGroup.startsWith(CID_RMQ_SYS_PREFIX);
     }
 
@@ -119,15 +128,17 @@ public class MixAll {
         return topic.startsWith(SYSTEM_TOPIC_PREFIX);
     }
 
+    //死信topic %DLQ%{consumerGroup}
     public static String getDLQTopic(final String consumerGroup) {
         return DLQ_GROUP_TOPIC_PREFIX + consumerGroup;
     }
 
-    public static String brokerVIPChannel(final boolean isChange, final String brokerAddr) {
+    public static String brokerVIPChannel(final boolean isChange, final String brokerAddr) {//vip channel
         if (isChange) {
             int split = brokerAddr.lastIndexOf(":");
             String ip = brokerAddr.substring(0, split);
             String port = brokerAddr.substring(split + 1);
+            //端口号 -2
             String brokerAddrNew = ip + ":" + (Integer.parseInt(port) - 2);
             return brokerAddrNew;
         } else {
@@ -339,7 +350,7 @@ public class MixAll {
                         Class<?>[] pt = method.getParameterTypes();
                         if (pt != null && pt.length > 0) {
                             String cn = pt[0].getSimpleName();
-                            Object arg = null;
+                            Object arg ;
                             if (cn.equals("int") || cn.equals("Integer")) {
                                 arg = Integer.parseInt(property);
                             } else if (cn.equals("long") || cn.equals("Long")) {

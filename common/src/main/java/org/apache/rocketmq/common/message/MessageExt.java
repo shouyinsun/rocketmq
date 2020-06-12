@@ -24,9 +24,11 @@ import java.nio.ByteBuffer;
 import org.apache.rocketmq.common.TopicFilterType;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 
+//消息扩展 ext
 public class MessageExt extends Message {
     private static final long serialVersionUID = 5720810158625748049L;
 
+    //队列id
     private int queueId;
 
     private int storeSize;
@@ -34,10 +36,13 @@ public class MessageExt extends Message {
     private long queueOffset;
     private int sysFlag;
     private long bornTimestamp;
+    //born host
     private SocketAddress bornHost;
 
     private long storeTimestamp;
+    //store host
     private SocketAddress storeHost;
+    //msgId
     private String msgId;
     private long commitLogOffset;
     private int bodyCRC;

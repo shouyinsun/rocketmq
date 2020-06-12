@@ -24,9 +24,13 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.rocketmq.client.common.ThreadLocalIndex;
 
+//时延容错
 public class LatencyFaultToleranceImpl implements LatencyFaultTolerance<String> {
-    private final ConcurrentHashMap<String, FaultItem> faultItemTable = new ConcurrentHashMap<String, FaultItem>(16);
+    //错误类目 name -> FaultItem
+    private final ConcurrentHashMap<String, FaultItem> faultItemTable = new ConcurrentHashMap(16);
 
+    //threadLocal
+    // worst item
     private final ThreadLocalIndex whichItemWorst = new ThreadLocalIndex();
 
     @Override
@@ -65,13 +69,14 @@ public class LatencyFaultToleranceImpl implements LatencyFaultTolerance<String> 
     @Override
     public String pickOneAtLeast() {
         final Enumeration<FaultItem> elements = this.faultItemTable.elements();
-        List<FaultItem> tmpList = new LinkedList<FaultItem>();
+        List<FaultItem> tmpList = new LinkedList();
         while (elements.hasMoreElements()) {
             final FaultItem faultItem = elements.nextElement();
             tmpList.add(faultItem);
         }
 
         if (!tmpList.isEmpty()) {
+            //for what?
             Collections.shuffle(tmpList);
 
             Collections.sort(tmpList);
@@ -96,9 +101,12 @@ public class LatencyFaultToleranceImpl implements LatencyFaultTolerance<String> 
             '}';
     }
 
-    class FaultItem implements Comparable<FaultItem> {
+    class FaultItem implements Comparable<FaultItem> {//错误
         private final String name;
+        //当前耗时
         private volatile long currentLatency;
+        //可用时间戳
+        // System.currentTimeMillis() + notAvailableDuration
         private volatile long startTimestamp;
 
         public FaultItem(final String name) {

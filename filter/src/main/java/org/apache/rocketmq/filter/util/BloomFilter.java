@@ -29,13 +29,13 @@ public class BloomFilter {
     public static final Charset UTF_8 = Charset.forName("UTF-8");
 
     // as error rate, 10/100 = 0.1
-    private int f = 10;
-    private int n = 128;
+    private int f = 10;//误判率
+    private int n = 128;//元素个数(样本数)
 
     // hash function num, by calculation.
-    private int k;
+    private int k;//hash算法个数
     // bit count, by calculation.
-    private int m;
+    private int m;//bit 位
 
     /**
      * Create bloom filter by error rate and mapping num.
@@ -43,7 +43,7 @@ public class BloomFilter {
      * @param f error rate
      * @param n num will mapping to bit
      */
-    public static BloomFilter createByFn(int f, int n) {
+    public static BloomFilter createByFn(int f, int n) {//根据误判率和样本数创建布隆过滤器
         return new BloomFilter(f, n);
     }
 
@@ -87,15 +87,16 @@ public class BloomFilter {
      * Mitzenmacher.
      * </p>
      */
-    public int[] calcBitPositions(String str) {
+    public int[] calcBitPositions(String str) {//计算bit位置 int[]
         int[] bitPositions = new int[this.k];
 
+        //murmur hash,只进行了一次hash计算
         long hash64 = Hashing.murmur3_128().hashString(str, UTF_8).asLong();
 
         int hash1 = (int) hash64;
         int hash2 = (int) (hash64 >>> 32);
 
-        for (int i = 1; i <= this.k; i++) {
+        for (int i = 1; i <= this.k; i++) {//k个hash算法,计算k次
             int combinedHash = hash1 + (i * hash2);
             // Flip all the bits if it's negative (guaranteed positive number)
             if (combinedHash < 0) {

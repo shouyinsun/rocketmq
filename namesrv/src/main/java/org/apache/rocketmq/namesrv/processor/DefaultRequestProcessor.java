@@ -57,6 +57,8 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+//默认的请求处理器
+// 处理请求
 public class DefaultRequestProcessor implements NettyRequestProcessor {
     private static InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
@@ -79,38 +81,38 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
 
 
         switch (request.getCode()) {
-            case RequestCode.PUT_KV_CONFIG:
+            case RequestCode.PUT_KV_CONFIG://设置k-v
                 return this.putKVConfig(ctx, request);
-            case RequestCode.GET_KV_CONFIG:
+            case RequestCode.GET_KV_CONFIG://获得value
                 return this.getKVConfig(ctx, request);
-            case RequestCode.DELETE_KV_CONFIG:
+            case RequestCode.DELETE_KV_CONFIG://delete key
                 return this.deleteKVConfig(ctx, request);
-            case RequestCode.QUERY_DATA_VERSION:
+            case RequestCode.QUERY_DATA_VERSION://数据版本
                 return queryBrokerTopicConfig(ctx, request);
-            case RequestCode.REGISTER_BROKER:
+            case RequestCode.REGISTER_BROKER://注册broker
                 Version brokerVersion = MQVersion.value2Version(request.getVersion());
                 if (brokerVersion.ordinal() >= MQVersion.Version.V3_0_11.ordinal()) {
                     return this.registerBrokerWithFilterServer(ctx, request);
                 } else {
                     return this.registerBroker(ctx, request);
                 }
-            case RequestCode.UNREGISTER_BROKER:
+            case RequestCode.UNREGISTER_BROKER://移除broker
                 return this.unregisterBroker(ctx, request);
-            case RequestCode.GET_ROUTEINTO_BY_TOPIC:
+            case RequestCode.GET_ROUTEINTO_BY_TOPIC://topic 获取路由信息
                 return this.getRouteInfoByTopic(ctx, request);
-            case RequestCode.GET_BROKER_CLUSTER_INFO:
+            case RequestCode.GET_BROKER_CLUSTER_INFO://broker 集群信息
                 return this.getBrokerClusterInfo(ctx, request);
-            case RequestCode.WIPE_WRITE_PERM_OF_BROKER:
+            case RequestCode.WIPE_WRITE_PERM_OF_BROKER://擦除write 权限
                 return this.wipeWritePermOfBroker(ctx, request);
-            case RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER:
+            case RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER://namesrv中全部topic
                 return getAllTopicListFromNameserver(ctx, request);
-            case RequestCode.DELETE_TOPIC_IN_NAMESRV:
+            case RequestCode.DELETE_TOPIC_IN_NAMESRV://删除topic
                 return deleteTopicInNamesrv(ctx, request);
-            case RequestCode.GET_KVLIST_BY_NAMESPACE:
+            case RequestCode.GET_KVLIST_BY_NAMESPACE://namespace 中所有k-v配置
                 return this.getKVListByNamespace(ctx, request);
-            case RequestCode.GET_TOPICS_BY_CLUSTER:
+            case RequestCode.GET_TOPICS_BY_CLUSTER://cluster中所有topic
                 return this.getTopicsByCluster(ctx, request);
-            case RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS:
+            case RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS://系统topic
                 return this.getSystemTopicListFromNs(ctx, request);
             case RequestCode.GET_UNIT_TOPIC_LIST:
                 return this.getUnitTopicList(ctx, request);
@@ -118,9 +120,9 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
                 return this.getHasUnitSubTopicList(ctx, request);
             case RequestCode.GET_HAS_UNIT_SUB_UNUNIT_TOPIC_LIST:
                 return this.getHasUnitSubUnUnitTopicList(ctx, request);
-            case RequestCode.UPDATE_NAMESRV_CONFIG:
+            case RequestCode.UPDATE_NAMESRV_CONFIG://更新namesrv configuration
                 return this.updateConfig(ctx, request);
-            case RequestCode.GET_NAMESRV_CONFIG:
+            case RequestCode.GET_NAMESRV_CONFIG://获取namesrv configuration
                 return this.getConfig(ctx, request);
             default:
                 break;
@@ -190,6 +192,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    //注册broker
     public RemotingCommand registerBrokerWithFilterServer(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
@@ -197,7 +200,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         final RegisterBrokerRequestHeader requestHeader =
             (RegisterBrokerRequestHeader) request.decodeCommandCustomHeader(RegisterBrokerRequestHeader.class);
 
-        if (!checksum(ctx, request, requestHeader)) {
+        if (!checksum(ctx, request, requestHeader)) {//请求body crc32校验
             response.setCode(ResponseCode.SYSTEM_ERROR);
             response.setRemark("crc32 not match");
             return response;
@@ -343,7 +346,9 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         TopicRouteData topicRouteData = this.namesrvController.getRouteInfoManager().pickupTopicRouteData(requestHeader.getTopic());
 
         if (topicRouteData != null) {
+            //支持顺序消息
             if (this.namesrvController.getNamesrvConfig().isOrderMessageEnable()) {
+                //顺序消息配置
                 String orderTopicConf =
                     this.namesrvController.getKvConfigManager().getKVConfig(NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG,
                         requestHeader.getTopic());

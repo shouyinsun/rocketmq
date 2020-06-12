@@ -24,7 +24,7 @@ import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.heartbeat.ConsumeType;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
-
+//拉取reBalance实现
 public class RebalancePullImpl extends RebalanceImpl {
     private final DefaultMQPullConsumerImpl defaultMQPullConsumerImpl;
 

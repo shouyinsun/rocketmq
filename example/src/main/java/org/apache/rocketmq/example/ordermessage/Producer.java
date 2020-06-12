@@ -45,6 +45,7 @@ public class Producer {
                     @Override
                     public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
                         Integer id = (Integer) arg;
+                        //相同orderId,进入同一个queue
                         int index = id % mqs.size();
                         return mqs.get(index);
                     }

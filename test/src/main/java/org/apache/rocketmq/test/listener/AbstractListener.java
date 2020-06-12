@@ -65,7 +65,7 @@ public class AbstractListener extends MQCollector implements MessageListener {
     public Collection<Object> waitForMessageConsume(Collection<Object> allSendMsgs,
         int timeoutMills) {
         this.allSendMsgs = allSendMsgs;
-        List<Object> sendMsgs = new ArrayList<Object>();
+        List<Object> sendMsgs = new ArrayList();
         sendMsgs.addAll(allSendMsgs);
 
         long curTime = System.currentTimeMillis();

@@ -140,18 +140,24 @@ public class LoggingBuilder {
         }
     }
 
+
+    //异步appender
     public static class AsyncAppender extends Appender implements Appender.AppenderPipeline {
 
+        //上限128
         public static final int DEFAULT_BUFFER_SIZE = 128;
 
-        private final List<LoggingEvent> buffer = new ArrayList<LoggingEvent>();
+        //list logging event
+        private final List<LoggingEvent> buffer = new ArrayList();
 
-        private final Map<String, DiscardSummary> discardMap = new HashMap<String, DiscardSummary>();
+        //丢弃map  logName -> DiscardSummary
+        private final Map<String, DiscardSummary> discardMap = new HashMap();
 
         private int bufferSize = DEFAULT_BUFFER_SIZE;
 
         private final AppenderPipelineImpl appenderPipeline;
 
+        //调度线程
         private final Thread dispatcher;
 
         private boolean blocking = true;
@@ -173,6 +179,7 @@ public class LoggingBuilder {
             }
         }
 
+        //append 日志
         public void append(final LoggingEvent event) {
             if ((dispatcher == null) || !dispatcher.isAlive() || (bufferSize <= 0)) {
                 synchronized (appenderPipeline) {
@@ -185,7 +192,7 @@ public class LoggingBuilder {
             event.getThreadName();
             event.getRenderedMessage();
 
-            synchronized (buffer) {
+            synchronized (buffer) {//同步
                 while (true) {
                     int previousSize = buffer.size();
 
@@ -210,7 +217,7 @@ public class LoggingBuilder {
                             Thread.currentThread().interrupt();
                         }
                     }
-                    if (discard) {
+                    if (discard) {//丢弃
                         String loggerName = event.getLoggerName();
                         DiscardSummary summary = discardMap.get(loggerName);
 
@@ -318,8 +325,9 @@ public class LoggingBuilder {
             return blocking;
         }
 
-        private final class DiscardSummary {
+        private final class DiscardSummary {//丢弃概要
 
+            //只计级别最高的日志
             private LoggingEvent maxEvent;
 
             private int count;
@@ -351,7 +359,7 @@ public class LoggingBuilder {
             }
         }
 
-        private class Dispatcher implements Runnable {
+        private class Dispatcher implements Runnable {//dispatcher 线程负责写日志
 
             private final AsyncAppender parent;
 
@@ -375,10 +383,10 @@ public class LoggingBuilder {
                 boolean isActive = true;
 
                 try {
-                    while (isActive) {
+                    while (isActive) {//一直写
                         LoggingEvent[] events = null;
 
-                        synchronized (buffer) {
+                        synchronized (buffer) {//同步
                             int bufferSize = buffer.size();
                             isActive = !parent.closed;
 
@@ -393,6 +401,7 @@ public class LoggingBuilder {
                                 buffer.toArray(events);
 
                                 int index = bufferSize;
+                                //discard的日志也会包含
                                 Collection<DiscardSummary> values = discardMap.values();
                                 for (DiscardSummary value : values) {
                                     events[index++] = value.createEvent();
@@ -954,7 +963,7 @@ public class LoggingBuilder {
             }
         }
 
-        int computeCheckPeriod() {
+        int computeCheckPeriod() {//确定type
             RollingCalendar rollingCalendar = new RollingCalendar(gmtTimeZone, Locale.getDefault());
             // set sate to 1970-01-01 00:00:00 GMT
             Date epoch = new Date(0);
@@ -966,6 +975,7 @@ public class LoggingBuilder {
                     rollingCalendar.setType(i);
                     Date next = new Date(rollingCalendar.getNextCheckMillis(epoch));
                     String r1 = simpleDateFormat.format(next);
+                    //连续两个周期 str 不一样
                     if (r0 != null && r1 != null && !r0.equals(r1)) {
                         return i;
                     }

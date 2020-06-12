@@ -39,12 +39,14 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 /**
  * Remote storage implementation
  */
+//远程broker存储消费偏移
 public class RemoteBrokerOffsetStore implements OffsetStore {
     private final static InternalLogger log = ClientLogger.getLog();
     private final MQClientInstance mQClientFactory;
     private final String groupName;
+    //offset偏移   MessageQueue -> offset
     private ConcurrentMap<MessageQueue, AtomicLong> offsetTable =
-        new ConcurrentHashMap<MessageQueue, AtomicLong>();
+        new ConcurrentHashMap();
 
     public RemoteBrokerOffsetStore(MQClientInstance mQClientFactory, String groupName) {
         this.mQClientFactory = mQClientFactory;
@@ -116,7 +118,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
         if (null == mqs || mqs.isEmpty())
             return;
 
-        final HashSet<MessageQueue> unusedMQ = new HashSet<MessageQueue>();
+        final HashSet<MessageQueue> unusedMQ = new HashSet();
 
         for (Map.Entry<MessageQueue, AtomicLong> entry : this.offsetTable.entrySet()) {
             MessageQueue mq = entry.getKey();
@@ -174,7 +176,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
 
     @Override
     public Map<MessageQueue, Long> cloneOffsetTable(String topic) {
-        Map<MessageQueue, Long> cloneOffsetTable = new HashMap<MessageQueue, Long>();
+        Map<MessageQueue, Long> cloneOffsetTable = new HashMap();
         for (Map.Entry<MessageQueue, AtomicLong> entry : this.offsetTable.entrySet()) {
             MessageQueue mq = entry.getKey();
             if (!UtilAll.isBlank(topic) && !topic.equals(mq.getTopic())) {

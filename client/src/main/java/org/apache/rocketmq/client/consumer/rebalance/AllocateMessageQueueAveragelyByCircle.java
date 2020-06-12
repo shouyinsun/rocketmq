@@ -26,6 +26,7 @@ import org.apache.rocketmq.common.message.MessageQueue;
 /**
  * Cycle average Hashing queue algorithm
  */
+//循环平均队列
 public class AllocateMessageQueueAveragelyByCircle implements AllocateMessageQueueStrategy {
     private final InternalLogger log = ClientLogger.getLog();
 
@@ -42,7 +43,7 @@ public class AllocateMessageQueueAveragelyByCircle implements AllocateMessageQue
             throw new IllegalArgumentException("cidAll is null or cidAll empty");
         }
 
-        List<MessageQueue> result = new ArrayList<MessageQueue>();
+        List<MessageQueue> result = new ArrayList();
         if (!cidAll.contains(currentCID)) {
             log.info("[BUG] ConsumerGroup: {} The consumerId: {} not in cidAll: {}",
                 consumerGroup,
@@ -53,6 +54,7 @@ public class AllocateMessageQueueAveragelyByCircle implements AllocateMessageQue
 
         int index = cidAll.indexOf(currentCID);
         for (int i = index; i < mqAll.size(); i++) {
+            //取模
             if (i % cidAll.size() == index) {
                 result.add(mqAll.get(i));
             }

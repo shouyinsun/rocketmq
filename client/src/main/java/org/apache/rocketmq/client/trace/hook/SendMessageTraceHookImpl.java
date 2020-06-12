@@ -27,6 +27,7 @@ import org.apache.rocketmq.client.trace.TraceDispatcher;
 import org.apache.rocketmq.client.trace.TraceType;
 import org.apache.rocketmq.common.protocol.NamespaceUtil;
 
+//消息发送追踪钩子
 public class SendMessageTraceHookImpl implements SendMessageHook {
 
     private TraceDispatcher localDispatcher;
@@ -48,7 +49,7 @@ public class SendMessageTraceHookImpl implements SendMessageHook {
         }
         //build the context content of TuxeTraceContext
         TraceContext tuxeContext = new TraceContext();
-        tuxeContext.setTraceBeans(new ArrayList<TraceBean>(1));
+        tuxeContext.setTraceBeans(new ArrayList(1));
         context.setMqTraceContext(tuxeContext);
         tuxeContext.setTraceType(TraceType.Pub);
         tuxeContext.setGroupName(NamespaceUtil.withoutNamespace(context.getProducerGroup()));

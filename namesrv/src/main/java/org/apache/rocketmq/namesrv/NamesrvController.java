@@ -61,9 +61,13 @@ public class NamesrvController {
     private FileWatchService fileWatchService;
 
     public NamesrvController(NamesrvConfig namesrvConfig, NettyServerConfig nettyServerConfig) {
+        //namesrv 配置
         this.namesrvConfig = namesrvConfig;
+        //netty server 配置
         this.nettyServerConfig = nettyServerConfig;
+        //k-v 配置
         this.kvConfigManager = new KVConfigManager(this);
+        //router信息
         this.routeInfoManager = new RouteInfoManager();
         this.brokerHousekeepingService = new BrokerHousekeepingService(this);
         this.configuration = new Configuration(
@@ -75,15 +79,20 @@ public class NamesrvController {
 
     public boolean initialize() {
 
+        //load k-v配置
         this.kvConfigManager.load();
 
+        //netty server
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
 
+        //处理请求的线程池
         this.remotingExecutor =
             Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
 
+        //注册DefaultRequestProcessor,处理request
         this.registerProcessor();
 
+        //10s 扫描移除非存活broker
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -92,6 +101,7 @@ public class NamesrvController {
             }
         }, 5, 10, TimeUnit.SECONDS);
 
+        //10s print all config
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -100,6 +110,7 @@ public class NamesrvController {
             }
         }, 1, 10, TimeUnit.MINUTES);
 
+        //监听ssl证书变更
         if (TlsSystemConfig.tlsMode != TlsMode.DISABLED) {
             // Register a listener to reload SslContext
             try {
@@ -141,7 +152,7 @@ public class NamesrvController {
         return true;
     }
 
-    private void registerProcessor() {
+    private void registerProcessor() {//注册 defaultRequestProcessor
         if (namesrvConfig.isClusterTest()) {
 
             this.remotingServer.registerDefaultProcessor(new ClusterTestRequestProcessor(this, namesrvConfig.getProductEnvName()),

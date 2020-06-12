@@ -16,10 +16,12 @@
  */
 package org.apache.rocketmq.common.sysflag;
 
+//topic 主题系统标志位
 public class TopicSysFlag {
 
+    //单元 00000001
     private final static int FLAG_UNIT = 0x1 << 0;
-
+    //订阅单元 00000010
     private final static int FLAG_UNIT_SUB = 0x1 << 1;
 
     public static int buildSysFlag(final boolean unit, final boolean hasUnitSub) {

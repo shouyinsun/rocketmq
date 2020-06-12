@@ -29,15 +29,19 @@ import java.util.Collections;
 /**
  * Filter data of consumer.
  */
+//consumer过滤的数据
 public class ConsumerFilterData {
 
     private String consumerGroup;
     private String topic;
+    //源表达式
     private String expression;
     private String expressionType;
+    //编译后的表达式
     private transient Expression compiledExpression;
     private long bornTime;
     private long deadTime = 0;
+    //布隆过滤的data
     private BloomFilterData bloomFilterData;
     private long clientVersion;
 

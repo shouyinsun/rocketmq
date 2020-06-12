@@ -16,7 +16,7 @@
  */
 
 package org.apache.rocketmq.filter.constant;
-
+//unary 一元（单位）计算
 public enum UnaryType {
     NEGATE,
     IN,

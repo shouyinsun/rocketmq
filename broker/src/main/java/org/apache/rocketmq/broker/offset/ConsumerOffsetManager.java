@@ -38,7 +38,7 @@ public class ConsumerOffsetManager extends ConfigManager {
     private static final String TOPIC_GROUP_SEPARATOR = "@";
 
     private ConcurrentMap<String/* topic@group */, ConcurrentMap<Integer, Long>> offsetTable =
-        new ConcurrentHashMap<String, ConcurrentMap<Integer, Long>>(512);
+        new ConcurrentHashMap(512);
 
     private transient BrokerController brokerController;
 
@@ -83,7 +83,7 @@ public class ConsumerOffsetManager extends ConfigManager {
     }
 
     public Set<String> whichTopicByConsumer(final String group) {
-        Set<String> topics = new HashSet<String>();
+        Set<String> topics = new HashSet();
 
         Iterator<Entry<String, ConcurrentMap<Integer, Long>>> it = this.offsetTable.entrySet().iterator();
         while (it.hasNext()) {
@@ -157,7 +157,7 @@ public class ConsumerOffsetManager extends ConfigManager {
     }
 
     @Override
-    public String configFilePath() {
+    public String configFilePath() {// config/consumerOffset.json
         return BrokerPathConfigHelper.getConsumerOffsetPath(this.brokerController.getMessageStoreConfig().getStorePathRootDir());
     }
 

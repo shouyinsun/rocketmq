@@ -22,12 +22,16 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.rocketmq.common.UtilAll;
 
+//客户端messageId设置器
+//格式： ip || pid (2byte) || hashCode (4byte) || spanMs (4byte) || counter (2byte)
 public class MessageClientIDSetter {
     private static final String TOPIC_KEY_SPLITTER = "#";
     private static final int LEN;
     private static final String FIX_STRING;
     private static final AtomicInteger COUNTER;
+    //开始时间 本月开始
     private static long startTime;
+    //下次开始时间 下月开始
     private static long nextStartTime;
 
     static {
@@ -37,20 +41,27 @@ public class MessageClientIDSetter {
         } catch (Exception e) {
             ip = createFakeIP();
         }
+        //16+12 或者 4+12
+        //格式： ip || pid (2byte) || hashCode (4byte) || spanMs (4byte) || counter (2byte)
         LEN = ip.length + 2 + 4 + 4 + 2;
         ByteBuffer tempBuffer = ByteBuffer.allocate(ip.length + 2 + 4);
         tempBuffer.position(0);
         tempBuffer.put(ip);
         tempBuffer.position(ip.length);
+        //pid
         tempBuffer.putInt(UtilAll.getPid());
+        //pid 只使用2byte
         tempBuffer.position(ip.length + 2);
+        //4 byte
         tempBuffer.putInt(MessageClientIDSetter.class.getClassLoader().hashCode());
+        //固定string
         FIX_STRING = UtilAll.bytes2string(tempBuffer.array());
         setStartTime(System.currentTimeMillis());
         COUNTER = new AtomicInteger(0);
     }
 
     private synchronized static void setStartTime(long millis) {
+        //本月开始
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(millis);
         cal.set(Calendar.DAY_OF_MONTH, 1);
@@ -59,6 +70,7 @@ public class MessageClientIDSetter {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         startTime = cal.getTimeInMillis();
+        //加一个自然月
         cal.add(Calendar.MONTH, 1);
         nextStartTime = cal.getTimeInMillis();
     }
@@ -73,9 +85,11 @@ public class MessageClientIDSetter {
         buf.put((byte) 0);
         buf.put(bytes, ipLength + 2 + 4, 4);
         buf.position(0);
+        //于startTime 间隔时间
         long spanMS = buf.getLong();
         Calendar cal = Calendar.getInstance();
         long now = cal.getTimeInMillis();
+        //本月开始
         cal.set(Calendar.DAY_OF_MONTH, 1);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -107,7 +121,7 @@ public class MessageClientIDSetter {
         return result;
     }
 
-    public static String createUniqID() {
+    public static String createUniqID() {//生成唯一id
         StringBuilder sb = new StringBuilder(LEN * 2);
         sb.append(FIX_STRING);
         sb.append(UtilAll.bytes2string(createUniqIDBuffer()));
@@ -121,12 +135,14 @@ public class MessageClientIDSetter {
             setStartTime(current);
         }
         buffer.position(0);
+        //4byte 间隔时间
         buffer.putInt((int) (System.currentTimeMillis() - startTime));
+        //counter 计数
         buffer.putShort((short) COUNTER.getAndIncrement());
         return buffer.array();
     }
 
-    public static void setUniqID(final Message msg) {
+    public static void setUniqID(final Message msg) {//生成并设置唯一id
         if (msg.getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX) == null) {
             msg.putProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX, createUniqID());
         }
@@ -136,8 +152,9 @@ public class MessageClientIDSetter {
         return msg.getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX);
     }
 
-    public static byte[] createFakeIP() {
+    public static byte[] createFakeIP() {//fake ip
         ByteBuffer bb = ByteBuffer.allocate(8);
+        //fakeIp 时间戳作为ip
         bb.putLong(System.currentTimeMillis());
         bb.position(4);
         byte[] fakeIP = new byte[4];

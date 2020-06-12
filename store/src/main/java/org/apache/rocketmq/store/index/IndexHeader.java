@@ -20,14 +20,14 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class IndexHeader {
+public class IndexHeader {//索引头
     public static final int INDEX_HEADER_SIZE = 40;
-    private static int beginTimestampIndex = 0;
-    private static int endTimestampIndex = 8;
-    private static int beginPhyoffsetIndex = 16;
-    private static int endPhyoffsetIndex = 24;
-    private static int hashSlotcountIndex = 32;
-    private static int indexCountIndex = 36;
+    private static int beginTimestampIndex = 0;//开始时间戳索引
+    private static int endTimestampIndex = 8;//结束时间戳
+    private static int beginPhyoffsetIndex = 16;//开始物理偏移
+    private static int endPhyoffsetIndex = 24;//结束物理偏移
+    private static int hashSlotcountIndex = 32;//hash槽个数
+    private static int indexCountIndex = 36;//索引个数
     private final ByteBuffer byteBuffer;
     private AtomicLong beginTimestamp = new AtomicLong(0);
     private AtomicLong endTimestamp = new AtomicLong(0);

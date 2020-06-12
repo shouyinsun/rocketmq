@@ -118,7 +118,7 @@ public class Validators {
         }
 
         //whether the same with system reserved keyword
-        if (topic.equals(MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC)) {
+        if (topic.equals(MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC)) {//不能是自动创建的topic TBW102
             throw new MQClientException(
                 String.format("The topic[%s] is conflict with AUTO_CREATE_TOPIC_KEY_TOPIC.", topic), null);
         }

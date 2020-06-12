@@ -22,6 +22,8 @@ import org.apache.rocketmq.logging.inner.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
+
+//自定义内部日志工厂
 public class InnerLoggerFactory extends InternalLoggerFactory {
 
     public InnerLoggerFactory() {

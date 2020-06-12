@@ -16,7 +16,7 @@
  */
 package org.apache.rocketmq.client.hook;
 
-public interface SendMessageHook {
+public interface SendMessageHook {//发送消息钩子
     String hookName();
 
     void sendMessageBefore(final SendMessageContext context);

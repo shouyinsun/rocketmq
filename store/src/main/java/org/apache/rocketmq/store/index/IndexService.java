@@ -33,22 +33,28 @@ import org.apache.rocketmq.store.DefaultMessageStore;
 import org.apache.rocketmq.store.DispatchRequest;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 
+//CommitLog的索引文件
+// 通过对Msg Key创建索引文件，来快速的定位消息
 public class IndexService {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     /**
      * Maximum times to attempt index file creation.
      */
+    //最大文件创建重试次数
     private static final int MAX_TRY_IDX_CREATE = 3;
     private final DefaultMessageStore defaultMessageStore;
+    //hash槽个数
     private final int hashSlotNum;
     private final int indexNum;
     private final String storePath;
-    private final ArrayList<IndexFile> indexFileList = new ArrayList<IndexFile>();
+    //索引文件
+    private final ArrayList<IndexFile> indexFileList = new ArrayList();
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     public IndexService(final DefaultMessageStore store) {
         this.defaultMessageStore = store;
         this.hashSlotNum = store.getMessageStoreConfig().getMaxHashSlotNum();
+
         this.indexNum = store.getMessageStoreConfig().getMaxIndexNum();
         this.storePath =
             StorePathConfigHelper.getStorePathIndex(store.getMessageStoreConfig().getStorePathRootDir());
@@ -155,7 +161,7 @@ public class IndexService {
     }
 
     public QueryOffsetResult queryOffset(String topic, String key, int maxNum, long begin, long end) {
-        List<Long> phyOffsets = new ArrayList<Long>(maxNum);
+        List<Long> phyOffsets = new ArrayList(maxNum);
 
         long indexLastUpdateTimestamp = 0;
         long indexLastUpdatePhyoffset = 0;
@@ -163,16 +169,16 @@ public class IndexService {
         try {
             this.readWriteLock.readLock().lock();
             if (!this.indexFileList.isEmpty()) {
-                for (int i = this.indexFileList.size(); i > 0; i--) {
+                for (int i = this.indexFileList.size(); i > 0; i--) {//倒着来
                     IndexFile f = this.indexFileList.get(i - 1);
                     boolean lastFile = i == this.indexFileList.size();
-                    if (lastFile) {
+                    if (lastFile) {//最后一个索引文件的end偏移跟时间戳
                         indexLastUpdateTimestamp = f.getEndTimestamp();
                         indexLastUpdatePhyoffset = f.getEndPhyOffset();
                     }
 
                     if (f.isTimeMatched(begin, end)) {
-
+                        //索引文件中,查找
                         f.selectPhyOffset(phyOffsets, buildKey(topic, key), maxNum, begin, end, lastFile);
                     }
 
@@ -180,7 +186,7 @@ public class IndexService {
                         break;
                     }
 
-                    if (phyOffsets.size() >= maxNum) {
+                    if (phyOffsets.size() >= maxNum) {//个数够了
                         break;
                     }
                 }
@@ -198,13 +204,16 @@ public class IndexService {
         return topic + "#" + key;
     }
 
+    //构建索引
     public void buildIndex(DispatchRequest req) {
         IndexFile indexFile = retryGetAndCreateIndexFile();
         if (indexFile != null) {
+            //当前索引文件,最大物理偏移
             long endPhyOffset = indexFile.getEndPhyOffset();
             DispatchRequest msg = req;
             String topic = msg.getTopic();
             String keys = msg.getKeys();
+            //偏移量小于索引文件中已写入的,忽略
             if (msg.getCommitLogOffset() < endPhyOffset) {
                 return;
             }
@@ -215,11 +224,11 @@ public class IndexService {
                 case MessageSysFlag.TRANSACTION_PREPARED_TYPE:
                 case MessageSysFlag.TRANSACTION_COMMIT_TYPE:
                     break;
-                case MessageSysFlag.TRANSACTION_ROLLBACK_TYPE:
+                case MessageSysFlag.TRANSACTION_ROLLBACK_TYPE://回滚消息,不处理
                     return;
             }
 
-            if (req.getUniqKey() != null) {
+            if (req.getUniqKey() != null) {//unique key 单条消息
                 indexFile = putKey(indexFile, msg, buildKey(topic, req.getUniqKey()));
                 if (indexFile == null) {
                     log.error("putKey error commitlog {} uniqkey {}", req.getCommitLogOffset(), req.getUniqKey());
@@ -227,7 +236,7 @@ public class IndexService {
                 }
             }
 
-            if (keys != null && keys.length() > 0) {
+            if (keys != null && keys.length() > 0) {//keys 多个msg,循环逐个存入
                 String[] keyset = keys.split(MessageConst.KEY_SEPARATOR);
                 for (int i = 0; i < keyset.length; i++) {
                     String key = keyset[i];
@@ -296,14 +305,15 @@ public class IndexService {
         long lastUpdateIndexTimestamp = 0;
 
         {
-            this.readWriteLock.readLock().lock();
+            this.readWriteLock.readLock().lock();//读锁
             if (!this.indexFileList.isEmpty()) {
                 IndexFile tmp = this.indexFileList.get(this.indexFileList.size() - 1);
                 if (!tmp.isWriteFull()) {
                     indexFile = tmp;
-                } else {
+                } else {//写满了
                     lastUpdateEndPhyOffset = tmp.getEndPhyOffset();
                     lastUpdateIndexTimestamp = tmp.getEndTimestamp();
+                    //前一个文件
                     prevIndexFile = tmp;
                 }
             }
@@ -311,8 +321,9 @@ public class IndexService {
             this.readWriteLock.readLock().unlock();
         }
 
-        if (indexFile == null) {
+        if (indexFile == null) {//新建一个文件
             try {
+                //时间戳作为文件名
                 String fileName =
                     this.storePath + File.separator
                         + UtilAll.timeMillisToHumanString(System.currentTimeMillis());
@@ -327,7 +338,7 @@ public class IndexService {
                 this.readWriteLock.writeLock().unlock();
             }
 
-            if (indexFile != null) {
+            if (indexFile != null) {//前一个文件刷盘
                 final IndexFile flushThisFile = prevIndexFile;
                 Thread flushThread = new Thread(new Runnable() {
                     @Override

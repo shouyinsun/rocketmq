@@ -28,14 +28,18 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.common.protocol.body.KVTable;
 import org.apache.rocketmq.namesrv.NamesrvController;
+
+//K-V 配置
 public class KVConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
     private final NamesrvController namesrvController;
 
+    //读写锁
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    //配置表
     private final HashMap<String/* Namespace */, HashMap<String/* Key */, String/* Value */>> configTable =
-        new HashMap<String, HashMap<String, String>>();
+        new HashMap();
 
     public KVConfigManager(NamesrvController namesrvController) {
         this.namesrvController = namesrvController;
@@ -64,7 +68,7 @@ public class KVConfigManager {
             try {
                 HashMap<String, String> kvTable = this.configTable.get(namespace);
                 if (null == kvTable) {
-                    kvTable = new HashMap<String, String>();
+                    kvTable = new HashMap();
                     this.configTable.put(namespace, kvTable);
                     log.info("putKVConfig create new Namespace {}", namespace);
                 }
@@ -83,20 +87,20 @@ public class KVConfigManager {
         } catch (InterruptedException e) {
             log.error("putKVConfig InterruptedException", e);
         }
-
+        //更新时持久化
         this.persist();
     }
 
-    public void persist() {
+    public void persist() {//持久化
         try {
-            this.lock.readLock().lockInterruptibly();
+            this.lock.readLock().lockInterruptibly();//读锁
             try {
                 KVConfigSerializeWrapper kvConfigSerializeWrapper = new KVConfigSerializeWrapper();
                 kvConfigSerializeWrapper.setConfigTable(this.configTable);
 
                 String content = kvConfigSerializeWrapper.toJson();
 
-                if (null != content) {
+                if (null != content) {//持久化到文件
                     MixAll.string2File(content, this.namesrvController.getNamesrvConfig().getKvConfigPath());
                 }
             } catch (IOException e) {
@@ -127,7 +131,7 @@ public class KVConfigManager {
         } catch (InterruptedException e) {
             log.error("deleteKVConfig InterruptedException", e);
         }
-
+        //更新时持久化
         this.persist();
     }
 
@@ -169,7 +173,7 @@ public class KVConfigManager {
         return null;
     }
 
-    public void printAllPeriodically() {
+    public void printAllPeriodically() {//定期log打印
         try {
             this.lock.readLock().lockInterruptibly();
             try {
@@ -179,7 +183,7 @@ public class KVConfigManager {
                     log.info("configTable SIZE: {}", this.configTable.size());
                     Iterator<Entry<String, HashMap<String, String>>> it =
                         this.configTable.entrySet().iterator();
-                    while (it.hasNext()) {
+                    while (it.hasNext()) {//namespace
                         Entry<String, HashMap<String, String>> next = it.next();
                         Iterator<Entry<String, String>> itSub = next.getValue().entrySet().iterator();
                         while (itSub.hasNext()) {

@@ -25,19 +25,20 @@ import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.annotation.CFNullable;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+//消息拉取请求头
 public class PullMessageRequestHeader implements CommandCustomHeader {
     @CFNotNull
-    private String consumerGroup;
+    private String consumerGroup;//消费组
     @CFNotNull
-    private String topic;
+    private String topic;//topic
     @CFNotNull
-    private Integer queueId;
+    private Integer queueId;//队列id
     @CFNotNull
-    private Long queueOffset;
+    private Long queueOffset;//队列内偏移
     @CFNotNull
-    private Integer maxMsgNums;
+    private Integer maxMsgNums;//最大消息数
     @CFNotNull
-    private Integer sysFlag;
+    private Integer sysFlag;//系统标志位
     @CFNotNull
     private Long commitOffset;
     @CFNotNull

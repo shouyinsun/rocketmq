@@ -16,7 +16,7 @@
  */
 package org.apache.rocketmq.store;
 
-public enum GetMessageStatus {
+public enum GetMessageStatus {//消息获取状态
 
     FOUND,
 

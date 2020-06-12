@@ -24,10 +24,10 @@ import java.util.Arrays;
  * <li>1. Bit positions allocated to requester;</li>
  * <li>2. Total bit num when allocating;</li>
  */
-public class BloomFilterData {
+public class BloomFilterData {//布隆过滤的data
 
-    private int[] bitPos;
-    private int bitNum;
+    private int[] bitPos;//分布的bit位置
+    private int bitNum;//bit位总个数
 
     public BloomFilterData() {
     }

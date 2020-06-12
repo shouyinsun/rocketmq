@@ -48,16 +48,22 @@ import org.apache.rocketmq.store.config.StorePathConfigHelper;
 public class ScheduleMessageService extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
-    public static final String SCHEDULE_TOPIC = "SCHEDULE_TOPIC_XXXX";
+    //schedule 定时消息 topic
+    public static final String SCHEDULE_TOPIC = "SCHEDULE_TOPIC_XXXX";//schedule topic
     private static final long FIRST_DELAY_TIME = 1000L;
     private static final long DELAY_FOR_A_WHILE = 100L;
     private static final long DELAY_FOR_A_PERIOD = 10000L;
 
+    //延迟级别
+    // 1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
+    //level  -> milliseconds
     private final ConcurrentMap<Integer /* level */, Long/* delay timeMillis */> delayLevelTable =
-        new ConcurrentHashMap<Integer, Long>(32);
+        new ConcurrentHashMap(32);
 
+    //延迟偏移
+    //level -> offset
     private final ConcurrentMap<Integer /* level */, Long/* offset */> offsetTable =
-        new ConcurrentHashMap<Integer, Long>(32);
+        new ConcurrentHashMap(32);
     private final DefaultMessageStore defaultMessageStore;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private Timer timer;
@@ -73,6 +79,7 @@ public class ScheduleMessageService extends ConfigManager {
         return queueId + 1;
     }
 
+    //queueId = delay -1
     public static int delayLevel2QueueId(final int delayLevel) {
         return delayLevel - 1;
     }
@@ -168,7 +175,7 @@ public class ScheduleMessageService extends ConfigManager {
     }
 
     @Override
-    public String configFilePath() {
+    public String configFilePath() { // config/delayOffset.json 文件
         return StorePathConfigHelper.getDelayOffsetStorePath(this.defaultMessageStore.getMessageStoreConfig()
             .getStorePathRootDir());
     }
@@ -191,7 +198,7 @@ public class ScheduleMessageService extends ConfigManager {
     }
 
     public boolean parseDelayLevel() {
-        HashMap<String, Long> timeUnitTable = new HashMap<String, Long>();
+        HashMap<String, Long> timeUnitTable = new HashMap();
         timeUnitTable.put("s", 1000L);
         timeUnitTable.put("m", 1000L * 60);
         timeUnitTable.put("h", 1000L * 60 * 60);
@@ -203,6 +210,7 @@ public class ScheduleMessageService extends ConfigManager {
             for (int i = 0; i < levelArray.length; i++) {
                 String value = levelArray[i];
                 String ch = value.substring(value.length() - 1);
+                //毫秒
                 Long tu = timeUnitTable.get(ch);
 
                 int level = i + 1;
@@ -222,6 +230,7 @@ public class ScheduleMessageService extends ConfigManager {
         return true;
     }
 
+    //投递延时消息
     class DeliverDelayedMessageTimerTask extends TimerTask {
         private final int delayLevel;
         private final long offset;
@@ -260,7 +269,7 @@ public class ScheduleMessageService extends ConfigManager {
             return result;
         }
 
-        public void executeOnTimeup() {
+        public void executeOnTimeup() {//到期消息
             ConsumeQueue cq =
                 ScheduleMessageService.this.defaultMessageStore.findConsumeQueue(SCHEDULE_TOPIC,
                     delayLevel2QueueId(delayLevel));
@@ -271,7 +280,7 @@ public class ScheduleMessageService extends ConfigManager {
                 SelectMappedBufferResult bufferCQ = cq.getIndexBuffer(this.offset);
                 if (bufferCQ != null) {
                     try {
-                        long nextOffset = offset;
+                        long nextOffset ;
                         int i = 0;
                         ConsumeQueueExt.CqExtUnit cqExtUnit = new ConsumeQueueExt.CqExtUnit();
                         for (; i < bufferCQ.getSize(); i += ConsumeQueue.CQ_STORE_UNIT_SIZE) {
@@ -305,12 +314,14 @@ public class ScheduleMessageService extends ConfigManager {
 
                                 if (msgExt != null) {
                                     try {
+                                        //转为真实消息
                                         MessageExtBrokerInner msgInner = this.messageTimeup(msgExt);
                                         if (MixAll.RMQ_SYS_TRANS_HALF_TOPIC.equals(msgInner.getTopic())) {
                                             log.error("[BUG] the real topic of schedule msg is {}, discard the msg. msg={}",
                                                     msgInner.getTopic(), msgInner);
                                             continue;
                                         }
+                                        //到期延迟消息,转换真实topic和queueId，重新put message
                                         PutMessageResult putMessageResult =
                                             ScheduleMessageService.this.writeMessageStore
                                                 .putMessage(msgInner);
@@ -397,9 +408,9 @@ public class ScheduleMessageService extends ConfigManager {
 
             msgInner.setWaitStoreMsgOK(false);
             MessageAccessor.clearProperty(msgInner, MessageConst.PROPERTY_DELAY_TIME_LEVEL);
-
+            //延迟消息真实的topic
             msgInner.setTopic(msgInner.getProperty(MessageConst.PROPERTY_REAL_TOPIC));
-
+            //延迟消息真实的queueId
             String queueIdStr = msgInner.getProperty(MessageConst.PROPERTY_REAL_QUEUE_ID);
             int queueId = Integer.parseInt(queueIdStr);
             msgInner.setQueueId(queueId);

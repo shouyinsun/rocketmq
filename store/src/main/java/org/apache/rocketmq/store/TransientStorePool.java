@@ -28,12 +28,12 @@ import org.apache.rocketmq.store.config.MessageStoreConfig;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
-public class TransientStorePool {
+public class TransientStorePool {//存储池
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
     private final int poolSize;
     private final int fileSize;
-    private final Deque<ByteBuffer> availableBuffers;
+    private final Deque<ByteBuffer> availableBuffers;//可用的byteBuffer个数
     private final MessageStoreConfig storeConfig;
 
     public TransientStorePool(final MessageStoreConfig storeConfig) {
@@ -47,10 +47,12 @@ public class TransientStorePool {
      * It's a heavy init method.
      */
     public void init() {
-        for (int i = 0; i < poolSize; i++) {
+        for (int i = 0; i < poolSize; i++) {//poolSize
+            //分配fileSize的堆外内存
             ByteBuffer byteBuffer = ByteBuffer.allocateDirect(fileSize);
-
+            //内存地址
             final long address = ((DirectBuffer) byteBuffer).address();
+            //指针
             Pointer pointer = new Pointer(address);
             LibC.INSTANCE.mlock(pointer, new NativeLong(fileSize));
 
@@ -66,13 +68,13 @@ public class TransientStorePool {
         }
     }
 
-    public void returnBuffer(ByteBuffer byteBuffer) {
+    public void returnBuffer(ByteBuffer byteBuffer) {//还一个
         byteBuffer.position(0);
         byteBuffer.limit(fileSize);
         this.availableBuffers.offerFirst(byteBuffer);
     }
 
-    public ByteBuffer borrowBuffer() {
+    public ByteBuffer borrowBuffer() {//borrow一个
         ByteBuffer buffer = availableBuffers.pollFirst();
         if (availableBuffers.size() < poolSize * 0.4) {
             log.warn("TransientStorePool only remain {} sheets.", availableBuffers.size());

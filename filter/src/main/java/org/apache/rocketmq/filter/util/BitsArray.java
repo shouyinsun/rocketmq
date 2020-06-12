@@ -20,10 +20,10 @@ package org.apache.rocketmq.filter.util;
 /**
  * Wrapper of bytes array, in order to operate single bit easily.
  */
-public class BitsArray implements Cloneable {
+public class BitsArray implements Cloneable {//bits 数组
 
-    private byte[] bytes;
-    private int bitLength;
+    private byte[] bytes;//byte数组
+    private int bitLength;//bit个数
 
     public static BitsArray create(int bitLength) {
         return new BitsArray(bitLength);

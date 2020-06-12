@@ -57,6 +57,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.remoting.netty.ResponseFuture;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+//mq管理
 public class MQAdminImpl {
 
     private final InternalLogger log = ClientLogger.getLog();
@@ -78,10 +79,13 @@ public class MQAdminImpl {
     public void createTopic(String key, String newTopic, int queueNum) throws MQClientException {
         createTopic(key, newTopic, queueNum, 0);
     }
-
+    //创建topic
+    // key 是一个已经存在的topic,新创建topic会在key相同的broker创建
     public void createTopic(String key, String newTopic, int queueNum, int topicSysFlag) throws MQClientException {
         try {
             Validators.checkTopic(newTopic);
+            //一般使用defaultTopic获取已经存在的broker data
+            // 所有的broker默认都支持defaultTopic
             TopicRouteData topicRouteData = this.mQClientFactory.getMQClientAPIImpl().getTopicRouteInfoFromNameServer(key, timeoutMillis);
             List<BrokerData> brokerDataList = topicRouteData.getBrokerDatas();
             if (brokerDataList != null && !brokerDataList.isEmpty()) {
@@ -93,15 +97,17 @@ public class MQAdminImpl {
                 StringBuilder orderTopicString = new StringBuilder();
 
                 for (BrokerData brokerData : brokerDataList) {
+                    //向 master broker 请求创建
                     String addr = brokerData.getBrokerAddrs().get(MixAll.MASTER_ID);
                     if (addr != null) {
                         TopicConfig topicConfig = new TopicConfig(newTopic);
+                        //topic 读写队列
                         topicConfig.setReadQueueNums(queueNum);
                         topicConfig.setWriteQueueNums(queueNum);
                         topicConfig.setTopicSysFlag(topicSysFlag);
 
                         boolean createOK = false;
-                        for (int i = 0; i < 5; i++) {
+                        for (int i = 0; i < 5; i++) {//创建重试5次
                             try {
                                 this.mQClientFactory.getMQClientAPIImpl().createTopic(addr, key, topicConfig, timeoutMillis);
                                 createOK = true;
@@ -134,6 +140,7 @@ public class MQAdminImpl {
         }
     }
 
+    //获取topic对应的发布信息,写队列
     public List<MessageQueue> fetchPublishMessageQueues(String topic) throws MQClientException {
         try {
             TopicRouteData topicRouteData = this.mQClientFactory.getMQClientAPIImpl().getTopicRouteInfoFromNameServer(topic, timeoutMillis);
@@ -151,7 +158,7 @@ public class MQAdminImpl {
     }
 
     public List<MessageQueue> parsePublishMessageQueues(List<MessageQueue> messageQueueList) {
-        List<MessageQueue> resultQueues = new ArrayList<MessageQueue>();
+        List<MessageQueue> resultQueues = new ArrayList();
         for (MessageQueue queue : messageQueueList) {
             String userTopic = NamespaceUtil.withoutNamespace(queue.getTopic(), this.mQClientFactory.getClientConfig().getNamespace());
             resultQueues.add(new MessageQueue(userTopic, queue.getBrokerName(), queue.getQueueId()));
@@ -159,7 +166,7 @@ public class MQAdminImpl {
 
         return resultQueues;
     }
-
+    //获取topic对应的发布信息,读队列
     public Set<MessageQueue> fetchSubscribeMessageQueues(String topic) throws MQClientException {
         try {
             TopicRouteData topicRouteData = this.mQClientFactory.getMQClientAPIImpl().getTopicRouteInfoFromNameServer(topic, timeoutMillis);
@@ -180,6 +187,7 @@ public class MQAdminImpl {
         throw new MQClientException("Unknow why, Can not find Message Queue for this topic, " + topic, null);
     }
 
+    //mq 偏移
     public long searchOffset(MessageQueue mq, long timestamp) throws MQClientException {
         String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
         if (null == brokerAddr) {
@@ -254,10 +262,10 @@ public class MQAdminImpl {
         throw new MQClientException("The broker[" + mq.getBrokerName() + "] not exist", null);
     }
 
-    public MessageExt viewMessage(
+    public MessageExt viewMessage(//根据messageId查看message信息
         String msgId) throws RemotingException, MQBrokerException, InterruptedException, MQClientException {
 
-        MessageId messageId = null;
+        MessageId messageId ;
         try {
             messageId = MessageDecoder.decodeMessageId(msgId);
         } catch (Exception e) {
@@ -295,7 +303,7 @@ public class MQAdminImpl {
         }
 
         if (topicRouteData != null) {
-            List<String> brokerAddrs = new LinkedList<String>();
+            List<String> brokerAddrs = new LinkedList();
             for (BrokerData brokerData : topicRouteData.getBrokerDatas()) {
                 String addr = brokerData.selectBrokerAddr();
                 if (addr != null) {
@@ -305,7 +313,7 @@ public class MQAdminImpl {
 
             if (!brokerAddrs.isEmpty()) {
                 final CountDownLatch countDownLatch = new CountDownLatch(brokerAddrs.size());
-                final List<QueryResult> queryResultList = new LinkedList<QueryResult>();
+                final List<QueryResult> queryResultList = new LinkedList();
                 final ReadWriteLock lock = new ReentrantReadWriteLock(false);
 
                 for (String addr : brokerAddrs) {
@@ -326,7 +334,7 @@ public class MQAdminImpl {
                                         if (response != null) {
                                             switch (response.getCode()) {
                                                 case ResponseCode.SUCCESS: {
-                                                    QueryMessageResponseHeader responseHeader = null;
+                                                    QueryMessageResponseHeader responseHeader ;
                                                     try {
                                                         responseHeader =
                                                             (QueryMessageResponseHeader) response
@@ -372,7 +380,7 @@ public class MQAdminImpl {
                 }
 
                 long indexLastUpdateTimestamp = 0;
-                List<MessageExt> messageList = new LinkedList<MessageExt>();
+                List<MessageExt> messageList = new LinkedList();
                 for (QueryResult qr : queryResultList) {
                     if (qr.getIndexLastUpdateTimestamp() > indexLastUpdateTimestamp) {
                         indexLastUpdateTimestamp = qr.getIndexLastUpdateTimestamp();

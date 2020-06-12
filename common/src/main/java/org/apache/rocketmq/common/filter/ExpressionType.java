@@ -16,7 +16,7 @@
  */
 
 package org.apache.rocketmq.common.filter;
-
+//表达式类型
 public class ExpressionType {
 
     /**
@@ -49,14 +49,14 @@ public class ExpressionType {
      * (a > 10 AND a < 100) OR (b IS NOT NULL AND b=TRUE)
      * </p>
      */
-    public static final String SQL92 = "SQL92";
+    public static final String SQL92 = "SQL92";//SQL92 标准
 
     /**
      * Only support or operation such as
      * "tag1 || tag2 || tag3", <br>
      * If null or * expression,meaning subscribe all.
      */
-    public static final String TAG = "TAG";
+    public static final String TAG = "TAG";//tag
 
     public static boolean isTagType(String type) {
         if (type == null || "".equals(type) || TAG.equals(type)) {

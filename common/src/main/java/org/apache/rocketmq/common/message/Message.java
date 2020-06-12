@@ -22,13 +22,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+//message 消息
 public class Message implements Serializable {
     private static final long serialVersionUID = 8445773977080406428L;
 
+    //topic
     private String topic;
     private int flag;
+    //属性
     private Map<String, String> properties;
+    //body byte[]
     private byte[] body;
+    //事务id
     private String transactionId;
 
     public Message() {
@@ -66,7 +71,7 @@ public class Message implements Serializable {
 
     void putProperty(final String name, final String value) {
         if (null == this.properties) {
-            this.properties = new HashMap<String, String>();
+            this.properties = new HashMap();
         }
 
         this.properties.put(name, value);
@@ -100,7 +105,7 @@ public class Message implements Serializable {
 
     public String getProperty(final String name) {
         if (null == this.properties) {
-            this.properties = new HashMap<String, String>();
+            this.properties = new HashMap();
         }
 
         return this.properties.get(name);

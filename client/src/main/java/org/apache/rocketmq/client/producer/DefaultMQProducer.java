@@ -54,6 +54,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
  * <p> <strong>Thread Safety:</strong> After configuring and starting process, this class can be regarded as thread-safe
  * and used among multiple threads context. </p>
  */
+//默认producer,线程安全
 public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
@@ -69,26 +70,31 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      *
      * See {@linktourl http://rocketmq.apache.org/docs/core-concept/} for more discussion.
      */
+    //producer组,事务消息
     private String producerGroup;
 
     /**
      * Just for testing or demo program
      */
+    //TBW102 自动创建的topic
     private String createTopicKey = MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC;
 
     /**
      * Number of queues to create per default topic.
      */
+    //默认topic的队列数
     private volatile int defaultTopicQueueNums = 4;
 
     /**
      * Timeout for sending messages.
      */
+    //消息发送超时 3000ms
     private int sendMsgTimeout = 3000;
 
     /**
      * Compress message body threshold, namely, message body larger than 4k will be compressed on default.
      */
+    //消息超过4k,需要压缩
     private int compressMsgBodyOverHowmuch = 1024 * 4;
 
     /**
@@ -96,6 +102,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      *
      * This may potentially cause message duplication which is up to application developers to resolve.
      */
+    //失败重试次数
     private int retryTimesWhenSendFailed = 2;
 
     /**
@@ -103,6 +110,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      *
      * This may potentially cause message duplication which is up to application developers to resolve.
      */
+    //异步失败重试
     private int retryTimesWhenSendAsyncFailed = 2;
 
     /**
@@ -113,6 +121,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     /**
      * Maximum allowed message size in bytes.
      */
+    //最大的消息长度 4M
     private int maxMessageSize = 1024 * 1024 * 4; // 4M
 
     /**
@@ -157,9 +166,10 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     public DefaultMQProducer(final String producerGroup, RPCHook rpcHook, boolean enableMsgTrace,
         final String customizedTraceTopic) {
         this.producerGroup = producerGroup;
+        //defaultMQProducerImpl 默认的producer实现
         defaultMQProducerImpl = new DefaultMQProducerImpl(this, rpcHook);
         //if client open the message trace feature
-        if (enableMsgTrace) {
+        if (enableMsgTrace) {//消息trace
             try {
                 AsyncTraceDispatcher dispatcher = new AsyncTraceDispatcher(producerGroup, TraceDispatcher.Type.PRODUCE, customizedTraceTopic, rpcHook);
                 dispatcher.setHostProducer(this.defaultMQProducerImpl);
@@ -244,7 +254,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
         this.producerGroup = producerGroup;
         defaultMQProducerImpl = new DefaultMQProducerImpl(this, rpcHook);
         //if client open the message trace feature
-        if (enableMsgTrace) {
+        if (enableMsgTrace) {//消息跟踪
             try {
                 AsyncTraceDispatcher dispatcher = new AsyncTraceDispatcher(producerGroup, TraceDispatcher.Type.PRODUCE, customizedTraceTopic, rpcHook);
                 dispatcher.setHostProducer(this.getDefaultMQProducerImpl());
@@ -267,9 +277,10 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      */
     @Override
     public void start() throws MQClientException {
+        //producerGroup
         this.setProducerGroup(withNamespace(this.producerGroup));
         this.defaultMQProducerImpl.start();
-        if (null != traceDispatcher) {
+        if (null != traceDispatcher) {//trace跟踪
             try {
                 traceDispatcher.start(this.getNamesrvAddr(), this.getAccessChannel());
             } catch (MQClientException e) {

@@ -28,11 +28,14 @@ import java.util.TreeMap;
  * Method routeNode will return a Node instance which the object key should be allocated to according to consistent hash
  * algorithm
  */
+//一致性hash
+// hash环
 public class ConsistentHashRouter<T extends Node> {
-    private final SortedMap<Long, VirtualNode<T>> ring = new TreeMap<Long, VirtualNode<T>>();
+    //treeMap 实现
+    private final SortedMap<Long, VirtualNode<T>> ring = new TreeMap();
     private final HashFunction hashFunction;
 
-    public ConsistentHashRouter(Collection<T> pNodes, int vNodeCount) {
+    public ConsistentHashRouter(Collection<T> pNodes, int vNodeCount) {//hash算法,默认md5
         this(pNodes, vNodeCount, new MD5Hash());
     }
 
@@ -62,6 +65,7 @@ public class ConsistentHashRouter<T extends Node> {
     public void addNode(T pNode, int vNodeCount) {
         if (vNodeCount < 0)
             throw new IllegalArgumentException("illegal virtual node counts :" + vNodeCount);
+        //已存在副本数
         int existingReplicas = getExistingReplicas(pNode);
         for (int i = 0; i < vNodeCount; i++) {
             VirtualNode<T> vNode = new VirtualNode<T>(pNode, i + existingReplicas);
@@ -72,6 +76,7 @@ public class ConsistentHashRouter<T extends Node> {
     /**
      * remove the physical node from the hash ring
      */
+    //移除某个节点,就是移除其所有的虚拟节点
     public void removeNode(T pNode) {
         Iterator<Long> it = ring.keySet().iterator();
         while (it.hasNext()) {
@@ -88,13 +93,17 @@ public class ConsistentHashRouter<T extends Node> {
      *
      * @param objectKey the object key to find a nearest Node
      */
+    //路由节点,最靠近的
     public T routeNode(String objectKey) {
         if (ring.isEmpty()) {
             return null;
         }
         Long hashVal = hashFunction.hash(objectKey);
+        //大于key的元素
         SortedMap<Long, VirtualNode<T>> tailMap = ring.tailMap(hashVal);
+        //第一个大于key的,认为最接近
         Long nodeHashVal = !tailMap.isEmpty() ? tailMap.firstKey() : ring.firstKey();
+        //物理节点
         return ring.get(nodeHashVal).getPhysicalNode();
     }
 

@@ -27,9 +27,11 @@ import org.apache.rocketmq.common.ServiceThread;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.common.utils.ThreadUtils;
 
+//拉取消息服务
 public class PullMessageService extends ServiceThread {
     private final InternalLogger log = ClientLogger.getLog();
-    private final LinkedBlockingQueue<PullRequest> pullRequestQueue = new LinkedBlockingQueue<PullRequest>();
+    //消息拉取请求队列
+    private final LinkedBlockingQueue<PullRequest> pullRequestQueue = new LinkedBlockingQueue();
     private final MQClientInstance mQClientFactory;
     private final ScheduledExecutorService scheduledExecutorService = Executors
         .newSingleThreadScheduledExecutor(new ThreadFactory() {
@@ -44,7 +46,7 @@ public class PullMessageService extends ServiceThread {
     }
 
     public void executePullRequestLater(final PullRequest pullRequest, final long timeDelay) {
-        if (!isStopped()) {
+        if (!isStopped()) {//定时拉取消息
             this.scheduledExecutorService.schedule(new Runnable() {
                 @Override
                 public void run() {
@@ -76,10 +78,13 @@ public class PullMessageService extends ServiceThread {
         return scheduledExecutorService;
     }
 
+    //拉取消息
     private void pullMessage(final PullRequest pullRequest) {
+        //消费者
         final MQConsumerInner consumer = this.mQClientFactory.selectConsumer(pullRequest.getConsumerGroup());
         if (consumer != null) {
             DefaultMQPushConsumerImpl impl = (DefaultMQPushConsumerImpl) consumer;
+            //消息拉取
             impl.pullMessage(pullRequest);
         } else {
             log.warn("No matched consumer for the PullRequest {}, drop it", pullRequest);
@@ -92,6 +97,7 @@ public class PullMessageService extends ServiceThread {
 
         while (!this.isStopped()) {
             try {
+                //队列 请求
                 PullRequest pullRequest = this.pullRequestQueue.take();
                 this.pullMessage(pullRequest);
             } catch (InterruptedException ignored) {

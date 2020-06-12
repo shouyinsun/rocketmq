@@ -50,6 +50,8 @@ public class Consumer {
                 } else if ((this.consumeTimes.get() % 4) == 0) {
                     return ConsumeOrderlyStatus.COMMIT;
                 } else if ((this.consumeTimes.get() % 5) == 0) {
+                    //失败,只会在consumer端重试,不会重新投递,重新投递会破坏顺序
+                    // 到达重试次数之后,会直接放入broker中的死信队列
                     context.setSuspendCurrentQueueTimeMillis(3000);
                     return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
                 }

@@ -22,21 +22,23 @@ import org.apache.rocketmq.store.ConsumeQueue;
 
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
-    @ImportantField
+    @ImportantField //${user.home}/store
     private String storePathRootDir = System.getProperty("user.home") + File.separator + "store";
 
     //The directory in which the commitlog is kept
-    @ImportantField
+    @ImportantField //${user.home}/store/commitlog
     private String storePathCommitLog = System.getProperty("user.home") + File.separator + "store"
         + File.separator + "commitlog";
 
     // CommitLog file size,default is 1G
-    private int mappedFileSizeCommitLog = 1024 * 1024 * 1024;
+    private int mappedFileSizeCommitLog = 1024 * 1024 * 1024;//commitLog 文件大小,默认1G
     // ConsumeQueue file size,default is 30W
+    // consumeQueue 文件大小,默认30w个单元, 300 000 * 20byte = 6 000 000 byte  6乘以10的6次方byte
     private int mappedFileSizeConsumeQueue = 300000 * ConsumeQueue.CQ_STORE_UNIT_SIZE;
     // enable consume queue ext
     private boolean enableConsumeQueueExt = false;
     // ConsumeQueue extend file size, 48M
+    // consumeQueue 扩展文件大小 48M
     private int mappedFileSizeConsumeQueueExt = 48 * 1024 * 1024;
     // Bit count of filter bit map.
     // this will be set by pipe of calculate filter bit map.
@@ -45,7 +47,7 @@ public class MessageStoreConfig {
     // CommitLog flush interval
     // flush data to disk
     @ImportantField
-    private int flushIntervalCommitLog = 500;
+    private int flushIntervalCommitLog = 500;//commitLog冲刷间隔,数据刷盘
 
     // Only used if TransientStorePool enabled
     // flush data to FileChannel
@@ -60,7 +62,7 @@ public class MessageStoreConfig {
 
     // Whether schedule flush,default is real-time
     @ImportantField
-    private boolean flushCommitLogTimed = false;
+    private boolean flushCommitLogTimed = false;//是否间隔冲刷,默认实时
     // ConsumeQueue flush interval
     private int flushIntervalConsumeQueue = 1000;
     // Resource reclaim interval
@@ -81,20 +83,23 @@ public class MessageStoreConfig {
     // Flow control for ConsumeQueue
     private int putMsgIndexHightWater = 600000;
     // The maximum size of message,default is 4M
+    // 消息最大size，默认4M
     private int maxMessageSize = 1024 * 1024 * 4;
     // Whether check the CRC32 of the records consumed.
     // This ensures no on-the-wire or on-disk corruption to the messages occurred.
     // This check adds some overhead,so it may be disabled in cases seeking extreme performance.
     private boolean checkCRCOnRecover = true;
     // How many pages are to be flushed when flush CommitLog
-    private int flushCommitLogLeastPages = 4;
+    private int flushCommitLogLeastPages = 4;//每次冲刷commitLog最小页数,默认4页
     // How many pages are to be committed when commit data to file
-    private int commitCommitLogLeastPages = 4;
+    private int commitCommitLogLeastPages = 4;//每次commit最小页数,默认4页
     // Flush page size when the disk in warming state
-    private int flushLeastPagesWhenWarmMapedFile = 1024 / 4 * 16;
+    private int flushLeastPagesWhenWarmMappedFile = 1024 / 4 * 16;
     // How many pages are to be flushed when flush ConsumeQueue
     private int flushConsumeQueueLeastPages = 2;
+    //commitLog刷盘最大间隔,超过了,就直接刷盘，忽略flushCommitLogLeastPages限制
     private int flushCommitLogThoroughInterval = 1000 * 10;
+    //commitLog两次提交的最大间隔,如果超过该间隔,将忽略commitCommitLogLeastPages直接提交
     private int commitCommitLogThoroughInterval = 200;
     private int flushConsumeQueueThoroughInterval = 1000 * 60;
     @ImportantField
@@ -109,14 +114,21 @@ public class MessageStoreConfig {
     private int accessMessageInMemoryMaxRatio = 40;
     @ImportantField
     private boolean messageIndexEnable = true;
+    //最大hash槽个数 500W
     private int maxHashSlotNum = 5000000;
+    //最大索引个数 2000w
     private int maxIndexNum = 5000000 * 4;
+    //最大批次消息数 64
     private int maxMsgsNumBatch = 64;
     @ImportantField
     private boolean messageIndexSafe = false;
+    //ha server 默认端口 10912
     private int haListenPort = 10912;
+    //心跳间隔
     private int haSendHeartbeatInterval = 1000 * 5;
+    //超时过期时间
     private int haHousekeepingInterval = 1000 * 20;
+    //主从消息数据同步,每次 32k
     private int haTransferBatchSize = 1024 * 32;
     @ImportantField
     private String haMasterAddress = null;
@@ -124,8 +136,10 @@ public class MessageStoreConfig {
     @ImportantField
     private BrokerRole brokerRole = BrokerRole.ASYNC_MASTER;
     @ImportantField
-    private FlushDiskType flushDiskType = FlushDiskType.ASYNC_FLUSH;
+    private FlushDiskType flushDiskType = FlushDiskType.ASYNC_FLUSH;//默认异步
+    //默认5s
     private int syncFlushTimeout = 1000 * 5;
+    //延迟级别
     private String messageDelayLevel = "1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h";
     private long flushDelayOffsetInterval = 1000 * 10;
     @ImportantField
@@ -135,14 +149,17 @@ public class MessageStoreConfig {
     private boolean debugLockEnable = false;
     private boolean duplicationEnable = false;
     private boolean diskFallRecorded = true;
+    //os pageCache 繁忙超时
     private long osPageCacheBusyTimeOutMills = 1000;
     private int defaultQueryMaxNum = 32;
 
     @ImportantField
-    private boolean transientStorePoolEnable = false;
-    private int transientStorePoolSize = 5;
-    private boolean fastFailIfNoBufferInStorePool = false;
+    private boolean transientStorePoolEnable = false;//使用存储池
+    private int transientStorePoolSize = 5;//
+    private boolean fastFailIfNoBufferInStorePool = false;//存储池里没有buffer，快速失败
 
+    //启用 dlegerCommitLog
+    //dledger 基于raft算法,可以自动容灾切换节点
     private boolean enableDLegerCommitLog = false;
     private String dLegerGroup;
     private String dLegerPeers;
@@ -584,12 +601,12 @@ public class MessageStoreConfig {
         this.storePathRootDir = storePathRootDir;
     }
 
-    public int getFlushLeastPagesWhenWarmMapedFile() {
-        return flushLeastPagesWhenWarmMapedFile;
+    public int getFlushLeastPagesWhenWarmMappedFile() {
+        return flushLeastPagesWhenWarmMappedFile;
     }
 
-    public void setFlushLeastPagesWhenWarmMapedFile(int flushLeastPagesWhenWarmMapedFile) {
-        this.flushLeastPagesWhenWarmMapedFile = flushLeastPagesWhenWarmMapedFile;
+    public void setFlushLeastPagesWhenWarmMappedFile(int flushLeastPagesWhenWarmMappedFile) {
+        this.flushLeastPagesWhenWarmMappedFile = flushLeastPagesWhenWarmMappedFile;
     }
 
     public boolean isOffsetCheckInSlave() {
@@ -614,7 +631,7 @@ public class MessageStoreConfig {
      *
      * @return <tt>true</tt> or <tt>false</tt>
      */
-    public boolean isTransientStorePoolEnable() {
+    public boolean isTransientStorePoolEnable() {//采用了存储池缓存消息,并且异步刷盘的master节点
         return transientStorePoolEnable && FlushDiskType.ASYNC_FLUSH == getFlushDiskType()
             && BrokerRole.SLAVE != getBrokerRole();
     }

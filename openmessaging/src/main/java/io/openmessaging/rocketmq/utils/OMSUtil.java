@@ -33,6 +33,7 @@ import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.message.MessageAccessor;
 
+//oms
 public class OMSUtil {
 
     /**

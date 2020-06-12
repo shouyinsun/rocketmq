@@ -42,12 +42,15 @@ public class BrokerConfig {
     private long brokerId = MixAll.MASTER_ID;
     private int brokerPermission = PermName.PERM_READ | PermName.PERM_WRITE;
     private int defaultTopicQueueNums = 8;
+
+    //是否允许自动创建topic
     @ImportantField
     private boolean autoCreateTopicEnable = true;
 
     private boolean clusterTopicEnable = true;
 
     private boolean brokerTopicEnable = true;
+    //自动创建订阅组
     @ImportantField
     private boolean autoCreateSubscriptionGroup = true;
     private String messageStorePlugIn = "";
@@ -95,6 +98,7 @@ public class BrokerConfig {
 
     private boolean longPollingEnable = true;
 
+    //短轮询时长,1000ms
     private long shortPollingTimeMills = 1000;
 
     private boolean notifyConsumerIdsChangedEnable = true;

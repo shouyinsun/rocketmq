@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 
+//consumer信息
 public class ConsumerData {
     private String groupName;
     private ConsumeType consumeType;

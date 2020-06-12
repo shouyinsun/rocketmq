@@ -16,11 +16,12 @@
  */
 package org.apache.rocketmq.client.consumer.listener;
 
+//顺序消费状态值
 public enum ConsumeOrderlyStatus {
     /**
      * Success consumption
      */
-    SUCCESS,
+    SUCCESS,//成功
     /**
      * Rollback consumption(only for binlog consumption)
      */
@@ -34,5 +35,7 @@ public enum ConsumeOrderlyStatus {
     /**
      * Suspend current queue a moment
      */
-    SUSPEND_CURRENT_QUEUE_A_MOMENT;
+    //失败的话是返回的SUSPEND_CURRENT_QUEUE_A_MOMENT，而不是RECONSUME_LATER
+    // 这是因为对于顺序消息,消费失败是不会返回给broker重新投递，这样会破坏顺序
+    SUSPEND_CURRENT_QUEUE_A_MOMENT;//暂停一下
 }

@@ -18,10 +18,10 @@ package org.apache.rocketmq.store.index;
 
 import java.util.List;
 
-public class QueryOffsetResult {
-    private final List<Long> phyOffsets;
-    private final long indexLastUpdateTimestamp;
-    private final long indexLastUpdatePhyoffset;
+public class QueryOffsetResult {//查询offset偏移结果
+    private final List<Long> phyOffsets;//物理偏移
+    private final long indexLastUpdateTimestamp;//索引文件最后更新时间戳
+    private final long indexLastUpdatePhyoffset;//索引文件最后更新offset
 
     public QueryOffsetResult(List<Long> phyOffsets, long indexLastUpdateTimestamp,
         long indexLastUpdatePhyoffset) {

@@ -45,7 +45,7 @@ public class ConsumerFilterManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.FILTER_LOGGER_NAME);
 
     private static final long MS_24_HOUR = 24 * 3600 * 1000;
-
+    //topic -> FilterDataMapByTopic
     private ConcurrentMap<String/*Topic*/, FilterDataMapByTopic>
         filterDataByTopic = new ConcurrentHashMap<String/*consumer group*/, FilterDataMapByTopic>(256);
 
@@ -86,6 +86,7 @@ public class ConsumerFilterManager extends ConfigManager {
         consumerFilterData.setConsumerGroup(consumerGroup);
         consumerFilterData.setBornTime(System.currentTimeMillis());
         consumerFilterData.setDeadTime(0);
+        //过滤表达式
         consumerFilterData.setExpression(expression);
         consumerFilterData.setExpressionType(type);
         consumerFilterData.setClientVersion(clientVersion);
@@ -217,7 +218,7 @@ public class ConsumerFilterManager extends ConfigManager {
 
     @Override
     public String configFilePath() {
-        if (this.brokerController != null) {
+        if (this.brokerController != null) {// config/consumerFilter.json
             return BrokerPathConfigHelper.getConsumerFilterPath(
                 this.brokerController.getMessageStoreConfig().getStorePathRootDir()
             );
@@ -322,8 +323,9 @@ public class ConsumerFilterManager extends ConfigManager {
 
     public static class FilterDataMapByTopic {
 
+        //consumer group -> ConsumerFilterData
         private ConcurrentMap<String/*consumer group*/, ConsumerFilterData>
-            groupFilterData = new ConcurrentHashMap<String, ConsumerFilterData>();
+            groupFilterData = new ConcurrentHashMap();
 
         private String topic;
 

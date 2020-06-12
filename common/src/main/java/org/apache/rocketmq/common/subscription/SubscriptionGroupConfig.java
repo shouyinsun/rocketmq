@@ -30,10 +30,14 @@ public class SubscriptionGroupConfig {
 
     private int retryQueueNums = 1;
 
+    //默认重试次数16次
     private int retryMaxTimes = 16;
 
+    //master broker
     private long brokerId = MixAll.MASTER_ID;
 
+    //master读取比较慢的话,从哪个broker消费
+    // 默认brokerId为1的从broker
     private long whichBrokerWhenConsumeSlowly = 1;
 
     private boolean notifyConsumerIdsChangedEnable = true;

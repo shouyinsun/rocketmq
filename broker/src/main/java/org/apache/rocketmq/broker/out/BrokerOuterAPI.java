@@ -58,13 +58,14 @@ import org.apache.rocketmq.remoting.netty.NettyClientConfig;
 import org.apache.rocketmq.remoting.netty.NettyRemotingClient;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+//broker外部api
 public class BrokerOuterAPI {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final RemotingClient remotingClient;
     private final TopAddressing topAddressing = new TopAddressing(MixAll.getWSAddr());
     private String nameSrvAddr = null;
     private BrokerFixedThreadPoolExecutor brokerOuterExecutor = new BrokerFixedThreadPoolExecutor(4, 10, 1, TimeUnit.MINUTES,
-        new ArrayBlockingQueue<Runnable>(32), new ThreadFactoryImpl("brokerOutApi_thread_", true));
+        new ArrayBlockingQueue(32), new ThreadFactoryImpl("brokerOutApi_thread_", true));
 
     public BrokerOuterAPI(final NettyClientConfig nettyClientConfig) {
         this(nettyClientConfig, null);
@@ -111,7 +112,7 @@ public class BrokerOuterAPI {
         this.remotingClient.updateNameServerAddressList(lst);
     }
 
-    public List<RegisterBrokerResult> registerBrokerAll(
+    public List<RegisterBrokerResult> registerBrokerAll(//向所有namesrv注册broker
         final String clusterName,
         final String brokerAddr,
         final String brokerName,
@@ -142,7 +143,7 @@ public class BrokerOuterAPI {
             final int bodyCrc32 = UtilAll.crc32(body);
             requestHeader.setBodyCrc32(bodyCrc32);
             final CountDownLatch countDownLatch = new CountDownLatch(nameServerAddressList.size());
-            for (final String namesrvAddr : nameServerAddressList) {
+            for (final String namesrvAddr : nameServerAddressList) {//依次向nameSrv注册
                 brokerOuterExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -258,7 +259,7 @@ public class BrokerOuterAPI {
         throw new MQBrokerException(response.getCode(), response.getRemark());
     }
 
-    public List<Boolean> needRegister(
+    public List<Boolean> needRegister(//是否需要注册broker
         final String clusterName,
         final String brokerAddr,
         final String brokerName,
@@ -269,7 +270,7 @@ public class BrokerOuterAPI {
         List<String> nameServerAddressList = this.remotingClient.getNameServerAddressList();
         if (nameServerAddressList != null && nameServerAddressList.size() > 0) {
             final CountDownLatch countDownLatch = new CountDownLatch(nameServerAddressList.size());
-            for (final String namesrvAddr : nameServerAddressList) {
+            for (final String namesrvAddr : nameServerAddressList) {//namesrv 判断是否需要注册
                 brokerOuterExecutor.execute(new Runnable() {
                     @Override
                     public void run() {

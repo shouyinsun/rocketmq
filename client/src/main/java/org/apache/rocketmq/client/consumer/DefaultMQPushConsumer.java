@@ -60,6 +60,9 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
  * <strong>Thread Safety:</strong> After initialization, the instance can be regarded as thread-safe.
  * </p>
  */
+//默认的mq push consumer
+// push其实也算pull
+// 客户端会主动循环发送Pull请求到broker,如果没有消息,broker会把请求放入等待队列,新消息到达后调用callback
 public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsumer {
 
     private final InternalLogger log = ClientLogger.getLog();
@@ -67,6 +70,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Internal implementation. Most of the functions herein are delegated to it.
      */
+    //默认实现
     protected final transient DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
 
     /**
@@ -90,6 +94,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      *
      * This field defaults to clustering.
      */
+    //默认集群
     private MessageModel messageModel = MessageModel.CLUSTERING;
 
     /**
@@ -141,7 +146,9 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Subscription relationship
      */
-    private Map<String /* topic */, String /* sub expression */> subscription = new HashMap<String, String>();
+    //订阅信息
+    //topic  ->  subExpression
+    private Map<String /* topic */, String /* sub expression */> subscription = new HashMap();
 
     /**
      * Message listener
@@ -252,6 +259,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Maximum amount of time in minutes a message may block the consuming thread.
      */
+    //消息消费超时 15min
     private long consumeTimeout = 15;
 
     /**
@@ -272,6 +280,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * @param consumerGroup Consumer group.
      */
     public DefaultMQPushConsumer(final String consumerGroup) {
+        //默认平均分配算法 AllocateMessageQueueAveragely
         this(null, consumerGroup, null, new AllocateMessageQueueAveragely());
     }
 
@@ -689,7 +698,9 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      */
     @Override
     public void start() throws MQClientException {
+        //设置consumer组
         setConsumerGroup(NamespaceUtil.wrapNamespace(this.getNamespace(), this.consumerGroup));
+        //start consumer impl
         this.defaultMQPushConsumerImpl.start();
         if (null != traceDispatcher) {
             try {

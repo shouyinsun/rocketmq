@@ -24,18 +24,22 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.store.config.BrokerRole;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
-
+//按topic和queue存储消息
+// 相同topic和queue的消息存储在一起,内容是commitLog的offset
 public class ConsumeQueue {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
-    public static final int CQ_STORE_UNIT_SIZE = 20;
+    public static final int CQ_STORE_UNIT_SIZE = 20;//consume queue 存储单元 20byte
     private static final InternalLogger LOG_ERROR = InternalLoggerFactory.getLogger(LoggerName.STORE_ERROR_LOGGER_NAME);
 
     private final DefaultMessageStore defaultMessageStore;
 
     private final MappedFileQueue mappedFileQueue;
+    //topic名
     private final String topic;
+    //queueId
     private final int queueId;
+    //存放存储单元内容
     private final ByteBuffer byteBufferIndex;
 
     private final String storePath;
@@ -51,12 +55,14 @@ public class ConsumeQueue {
         final int mappedFileSize,
         final DefaultMessageStore defaultMessageStore) {
         this.storePath = storePath;
+        //consume queue mapped文件的大小
         this.mappedFileSize = mappedFileSize;
         this.defaultMessageStore = defaultMessageStore;
 
         this.topic = topic;
         this.queueId = queueId;
 
+        // 文件路径 {topic}/{queueId}/
         String queueDir = this.storePath
             + File.separator + topic
             + File.separator + queueId;
@@ -85,10 +91,11 @@ public class ConsumeQueue {
         return result;
     }
 
-    public void recover() {
+    public void recover() {//恢复
         final List<MappedFile> mappedFiles = this.mappedFileQueue.getMappedFiles();
         if (!mappedFiles.isEmpty()) {
 
+            //倒数第三个
             int index = mappedFiles.size() - 3;
             if (index < 0)
                 index = 0;
@@ -155,10 +162,10 @@ public class ConsumeQueue {
     public long getOffsetInQueueByTime(final long timestamp) {
         MappedFile mappedFile = this.mappedFileQueue.getMappedFileByTime(timestamp);
         if (mappedFile != null) {
-            long offset = 0;
+            long offset ;
             int low = minLogicOffset > mappedFile.getFileFromOffset() ? (int) (minLogicOffset - mappedFile.getFileFromOffset()) : 0;
-            int high = 0;
-            int midOffset = -1, targetOffset = -1, leftOffset = -1, rightOffset = -1;
+            int high ;
+            int midOffset , targetOffset = -1, leftOffset = -1, rightOffset = -1;
             long leftIndexValue = -1L, rightIndexValue = -1L;
             long minPhysicOffset = this.defaultMessageStore.getMinPhyOffset();
             SelectMappedBufferResult sbr = mappedFile.selectMappedBuffer(0);
@@ -376,13 +383,18 @@ public class ConsumeQueue {
         return this.minLogicOffset / CQ_STORE_UNIT_SIZE;
     }
 
+    //存放消息的position信息
     public void putMessagePositionInfoWrapper(DispatchRequest request) {
         final int maxRetries = 30;
         boolean canWrite = this.defaultMessageStore.getRunningFlags().isCQWriteable();
         for (int i = 0; i < maxRetries && canWrite; i++) {
             long tagsCode = request.getTagsCode();
-            if (isExtWriteEnable()) {
+            if (isExtWriteEnable()) {//cq 扩展
+                //如果需要写ext文件，则将消息的tagsCode写入
                 ConsumeQueueExt.CqExtUnit cqExtUnit = new ConsumeQueueExt.CqExtUnit();
+                //将tagCode和bitMap记录进CQExt文件中，
+                // 这个是一个过滤的扩展功能，采用的bloom过滤器先记录消息的bitMap，
+                // 这样consumer来读取消息时先通过bloom过滤器判断是否有符合过滤条件的消息
                 cqExtUnit.setFilterBitMap(request.getBitMap());
                 cqExtUnit.setMsgStoreTime(request.getStoreTimestamp());
                 cqExtUnit.setTagsCode(request.getTagsCode());
@@ -395,6 +407,7 @@ public class ConsumeQueue {
                         topic, queueId, request.getCommitLogOffset());
                 }
             }
+            //consume queue 文件更新
             boolean result = this.putMessagePositionInfo(request.getCommitLogOffset(),
                 request.getMsgSize(), tagsCode, request.getConsumeQueueOffset());
             if (result) {
@@ -402,6 +415,7 @@ public class ConsumeQueue {
                     this.defaultMessageStore.getMessageStoreConfig().isEnableDLegerCommitLog()) {
                     this.defaultMessageStore.getStoreCheckpoint().setPhysicMsgTimestamp(request.getStoreTimestamp());
                 }
+                //逻辑消息时间戳
                 this.defaultMessageStore.getStoreCheckpoint().setLogicsMsgTimestamp(request.getStoreTimestamp());
                 return;
             } else {
@@ -422,6 +436,7 @@ public class ConsumeQueue {
         this.defaultMessageStore.getRunningFlags().makeLogicsQueueError();
     }
 
+    //写 consume queue 文件
     private boolean putMessagePositionInfo(final long offset, final int size, final long tagsCode,
         final long cqOffset) {
 
@@ -431,13 +446,15 @@ public class ConsumeQueue {
         }
 
         this.byteBufferIndex.flip();
-        this.byteBufferIndex.limit(CQ_STORE_UNIT_SIZE);
+        this.byteBufferIndex.limit(CQ_STORE_UNIT_SIZE);//20byte
+        //消息的offset、消息size和tagCode
         this.byteBufferIndex.putLong(offset);
         this.byteBufferIndex.putInt(size);
         this.byteBufferIndex.putLong(tagsCode);
 
         final long expectLogicOffset = cqOffset * CQ_STORE_UNIT_SIZE;
 
+        //consume queue 文件
         MappedFile mappedFile = this.mappedFileQueue.getLastMappedFile(expectLogicOffset);
         if (mappedFile != null) {
 
@@ -450,7 +467,7 @@ public class ConsumeQueue {
                     + mappedFile.getWrotePosition());
             }
 
-            if (cqOffset != 0) {
+            if (cqOffset != 0) {//queue中偏移
                 long currentLogicOffset = mappedFile.getWrotePosition() + mappedFile.getFileFromOffset();
 
                 if (expectLogicOffset < currentLogicOffset) {
@@ -471,6 +488,7 @@ public class ConsumeQueue {
                 }
             }
             this.maxPhysicOffset = offset + size;
+            //append写 consume queue 文件
             return mappedFile.appendMessage(this.byteBufferIndex.array());
         }
         return false;

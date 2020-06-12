@@ -22,6 +22,9 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 
+//jna
+// java native access
+// C函数库
 public interface LibC extends Library {
     LibC INSTANCE = (LibC) Native.loadLibrary(Platform.isWindows() ? "msvcrt" : "c", LibC.class);
 
@@ -38,16 +41,16 @@ public interface LibC extends Library {
     int MS_INVALIDATE = 0x0002;
     /* synchronous memory sync */
     int MS_SYNC = 0x0004;
-
+    //mlock 锁住内存是为了防止这段内存被操作系统swap掉
     int mlock(Pointer var1, NativeLong var2);
 
     int munlock(Pointer var1, NativeLong var2);
 
     int madvise(Pointer var1, NativeLong var2, int var3);
-
+    //memset
     Pointer memset(Pointer p, int v, long len);
 
     int mlockall(int flags);
-
+    //sync 同步
     int msync(Pointer p, NativeLong length, int flags);
 }

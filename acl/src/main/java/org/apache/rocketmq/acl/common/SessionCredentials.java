@@ -24,10 +24,10 @@ import org.apache.rocketmq.common.MixAll;
 
 public class SessionCredentials {
     public static final Charset CHARSET = Charset.forName("UTF-8");
-    public static final String ACCESS_KEY = "AccessKey";
-    public static final String SECRET_KEY = "SecretKey";
-    public static final String SIGNATURE = "Signature";
-    public static final String SECURITY_TOKEN = "SecurityToken";
+    public static final String ACCESS_KEY = "AccessKey";//access key ak
+    public static final String SECRET_KEY = "SecretKey";//secret key sk
+    public static final String SIGNATURE = "Signature";//签名
+    public static final String SECURITY_TOKEN = "SecurityToken";//token
 
     public static final String KEY_FILE = System.getProperty("rocketmq.client.keyFile",
         System.getProperty("user.home") + File.separator + "key");

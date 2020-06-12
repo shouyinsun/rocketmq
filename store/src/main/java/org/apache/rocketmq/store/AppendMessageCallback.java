@@ -25,7 +25,7 @@ import org.apache.rocketmq.common.message.MessageExtBatch;
 public interface AppendMessageCallback {
 
     /**
-     * After message serialization, write MapedByteBuffer
+     * After message serialization, write MappedByteBuffer
      *
      * @return How many bytes to write
      */
@@ -33,7 +33,7 @@ public interface AppendMessageCallback {
         final int maxBlank, final MessageExtBrokerInner msg);
 
     /**
-     * After batched message serialization, write MapedByteBuffer
+     * After batched message serialization, write MappedByteBuffer
      *
      * @param messageExtBatch, backed up by a byte array
      * @return How many bytes to write

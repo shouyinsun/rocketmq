@@ -27,8 +27,8 @@ import org.apache.rocketmq.test.util.data.collect.DataCollector;
 import org.apache.rocketmq.test.util.data.collect.DataCollectorManager;
 
 public abstract class MQCollector {
-    protected DataCollector msgBodys = null;
-    protected DataCollector originMsgs = null;
+    protected DataCollector msgBodys ;
+    protected DataCollector originMsgs ;
     protected DataCollector errorMsgs = null;
     protected Map<Object, Object> originMsgIndex = null;
     protected Collection<Object> msgBodysCopy = null;

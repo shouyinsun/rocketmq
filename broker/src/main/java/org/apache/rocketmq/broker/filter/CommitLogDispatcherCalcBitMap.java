@@ -32,6 +32,7 @@ import java.util.Iterator;
 /**
  * Calculate bit map of filter.
  */
+//commitLog分发器计算过滤bitMap  BloomFilter
 public class CommitLogDispatcherCalcBitMap implements CommitLogDispatcher {
 
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.FILTER_LOGGER_NAME);
@@ -60,7 +61,7 @@ public class CommitLogDispatcherCalcBitMap implements CommitLogDispatcher {
 
             Iterator<ConsumerFilterData> iterator = filterDatas.iterator();
             BitsArray filterBitMap = BitsArray.create(
-                this.consumerFilterManager.getBloomFilter().getM()
+                this.consumerFilterManager.getBloomFilter().getM()//bit位总个数
             );
 
             long startTime = System.currentTimeMillis();
@@ -97,6 +98,7 @@ public class CommitLogDispatcherCalcBitMap implements CommitLogDispatcher {
                 }
             }
 
+            //set bitMap
             request.setBitMap(filterBitMap.bytes());
 
             long elapsedTime = UtilAll.computeElapsedTimeMilliseconds(startTime);

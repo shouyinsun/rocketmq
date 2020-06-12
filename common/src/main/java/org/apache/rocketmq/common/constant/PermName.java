@@ -16,6 +16,8 @@
  */
 package org.apache.rocketmq.common.constant;
 
+//permission 权限
+//读、写、继承权限
 public class PermName {
     public static final int PERM_PRIORITY = 0x1 << 3;
     public static final int PERM_READ = 0x1 << 2;

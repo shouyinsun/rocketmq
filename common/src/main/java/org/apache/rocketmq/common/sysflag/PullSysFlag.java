@@ -16,12 +16,13 @@
  */
 package org.apache.rocketmq.common.sysflag;
 
+//拉取系统标志位
 public class PullSysFlag {
-    private final static int FLAG_COMMIT_OFFSET = 0x1;
-    private final static int FLAG_SUSPEND = 0x1 << 1;
-    private final static int FLAG_SUBSCRIPTION = 0x1 << 2;
-    private final static int FLAG_CLASS_FILTER = 0x1 << 3;
-    private final static int FLAG_LITE_PULL_MESSAGE = 0x1 << 4;
+    private final static int FLAG_COMMIT_OFFSET = 0x1;//是否commit偏移 00000001
+    private final static int FLAG_SUSPEND = 0x1 << 1;//是否suspend暂停 00000010
+    private final static int FLAG_SUBSCRIPTION = 0x1 << 2;//是否有订阅内容 00000100
+    private final static int FLAG_CLASS_FILTER = 0x1 << 3;//是否过滤class 00001000
+    private final static int FLAG_LITE_PULL_MESSAGE = 0x1 << 4;//lite pull message 00010000
 
     public static int buildSysFlag(final boolean commitOffset, final boolean suspend,
         final boolean subscription, final boolean classFilter) {

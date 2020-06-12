@@ -28,6 +28,7 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.netty.RequestTask;
 import org.apache.rocketmq.remoting.protocol.RemotingSysResponseCode;
 
+//fastFailure 快速失败,清除过期请求
 public class BrokerFastFailure {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
@@ -63,7 +64,7 @@ public class BrokerFastFailure {
     }
 
     private void cleanExpiredRequest() {
-        while (this.brokerController.getMessageStore().isOSPageCacheBusy()) {
+        while (this.brokerController.getMessageStore().isOSPageCacheBusy()) {// page cache busy
             try {
                 if (!this.brokerController.getSendThreadPoolQueue().isEmpty()) {
                     final Runnable runnable = this.brokerController.getSendThreadPoolQueue().poll(0, TimeUnit.SECONDS);
@@ -80,6 +81,7 @@ public class BrokerFastFailure {
             }
         }
 
+        //清除过期请求
         cleanExpiredRequestInQueue(this.brokerController.getSendThreadPoolQueue(),
             this.brokerController.getBrokerConfig().getWaitTimeMillsInSendQueue());
 

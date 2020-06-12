@@ -37,7 +37,8 @@ import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.store.QueryMessageResult;
 import org.apache.rocketmq.store.SelectMappedBufferResult;
-
+//QueryMessageProcessor
+// 接受历史消息查询请求,支持按Msg ID、Msg Key和时间段查询消息详情
 public class QueryMessageProcessor implements NettyRequestProcessor {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
 
@@ -67,6 +68,7 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
         return false;
     }
 
+    //根据key,消息查询
     public RemotingCommand queryMessage(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response =
@@ -85,6 +87,7 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
         }
 
         final QueryMessageResult queryMessageResult =
+                //索引文件中查询
             this.brokerController.getMessageStore().queryMessage(requestHeader.getTopic(),
                 requestHeader.getKey(), requestHeader.getMaxNum(), requestHeader.getBeginTimestamp(),
                 requestHeader.getEndTimestamp());

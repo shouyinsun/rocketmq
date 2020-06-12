@@ -28,18 +28,19 @@ import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
-
+//mapped 文件队列
 public class MappedFileQueue {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private static final InternalLogger LOG_ERROR = InternalLoggerFactory.getLogger(LoggerName.STORE_ERROR_LOGGER_NAME);
 
-    private static final int DELETE_FILES_BATCH_MAX = 10;
+    private static final int DELETE_FILES_BATCH_MAX = 10;//默认最大删除文件批次个数
 
     private final String storePath;
 
-    private final int mappedFileSize;
+    private final int mappedFileSize;//mapper文件的大小 byte
 
-    private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
+    //mapped files
+    private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList();
 
     private final AllocateMappedFileService allocateMappedFileService;
 
@@ -102,7 +103,7 @@ public class MappedFileQueue {
     }
 
     public void truncateDirtyFiles(long offset) {
-        List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
+        List<MappedFile> willRemoveFiles = new ArrayList();
 
         for (MappedFile file : this.mappedFiles) {
             long fileTailOffset = file.getFileFromOffset() + this.mappedFileSize;
@@ -144,12 +145,12 @@ public class MappedFileQueue {
         }
     }
 
-    public boolean load() {
+    public boolean load() {//加载文件
         File dir = new File(this.storePath);
         File[] files = dir.listFiles();
         if (files != null) {
             // ascending order
-            Arrays.sort(files);
+            Arrays.sort(files);//顺序
             for (File file : files) {
 
                 if (file.length() != this.mappedFileSize) {
@@ -203,8 +204,10 @@ public class MappedFileQueue {
             createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;
         }
 
-        if (createOffset != -1 && needCreate) {
+        if (createOffset != -1 && needCreate) {//偏移量就是文件名
+            //下一个文件路径
             String nextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset);
+            //下下个文件路径
             String nextNextFilePath = this.storePath + File.separator
                 + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
             MappedFile mappedFile = null;
@@ -237,7 +240,7 @@ public class MappedFileQueue {
         return getLastMappedFile(startOffset, true);
     }
 
-    public MappedFile getLastMappedFile() {
+    public MappedFile getLastMappedFile() {//最后的mapped 文件
         MappedFile mappedFileLast = null;
 
         while (!this.mappedFiles.isEmpty()) {
@@ -344,7 +347,7 @@ public class MappedFileQueue {
 
         int mfsLength = mfs.length - 1;
         int deleteCount = 0;
-        List<MappedFile> files = new ArrayList<MappedFile>();
+        List<MappedFile> files = new ArrayList();
         if (null != mfs) {
             for (int i = 0; i < mfsLength; i++) {
                 MappedFile mappedFile = (MappedFile) mfs[i];
@@ -445,6 +448,7 @@ public class MappedFileQueue {
         if (mappedFile != null) {
             int offset = mappedFile.commit(commitLeastPages);
             long where = mappedFile.getFileFromOffset() + offset;
+            //result false，有写入数据
             result = where == this.committedWhere;
             this.committedWhere = where;
         }
@@ -459,7 +463,7 @@ public class MappedFileQueue {
      * @param returnFirstOnNotFound If the mapped file is not found, then return the first one.
      * @return Mapped file or null (when not found and returnFirstOnNotFound is <code>false</code>).
      */
-    public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound) {
+    public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound) {//查找offset对应的mappedFile
         try {
             MappedFile firstMappedFile = this.getFirstMappedFile();
             MappedFile lastMappedFile = this.getLastMappedFile();
@@ -471,7 +475,7 @@ public class MappedFileQueue {
                         lastMappedFile.getFileFromOffset() + this.mappedFileSize,
                         this.mappedFileSize,
                         this.mappedFiles.size());
-                } else {
+                } else {//index
                     int index = (int) ((offset / this.mappedFileSize) - (firstMappedFile.getFileFromOffset() / this.mappedFileSize));
                     MappedFile targetFile = null;
                     try {

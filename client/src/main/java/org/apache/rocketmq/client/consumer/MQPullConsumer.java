@@ -26,6 +26,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 /**
  * Pulling consumer interface
  */
+//pull consumer
 public interface MQPullConsumer extends MQConsumer {
     /**
      * Start the consumer

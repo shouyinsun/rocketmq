@@ -41,6 +41,7 @@ import org.apache.rocketmq.store.config.BrokerRole;
 /**
  * EndTransaction processor: process commit and rollback message
  */
+//处理结束事务 commit后者rollback
 public class EndTransactionProcessor implements NettyRequestProcessor {
     private static final InternalLogger LOGGER = InternalLoggerFactory.getLogger(LoggerName.TRANSACTION_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -61,7 +62,8 @@ public class EndTransactionProcessor implements NettyRequestProcessor {
             LOGGER.warn("Message store is slave mode, so end transaction is forbidden. ");
             return response;
         }
-
+        //判断是来源于Producer主动发的消息还是Broker主动检查返回的消息
+        // 这里只用来记录日志
         if (requestHeader.getFromTransactionCheck()) {
             switch (requestHeader.getCommitOrRollback()) {
                 case MessageSysFlag.TRANSACTION_NOT_TYPE: {
@@ -73,7 +75,7 @@ public class EndTransactionProcessor implements NettyRequestProcessor {
                     return null;
                 }
 
-                case MessageSysFlag.TRANSACTION_COMMIT_TYPE: {
+                case MessageSysFlag.TRANSACTION_COMMIT_TYPE: {//commit
                     LOGGER.warn("Check producer[{}] transaction state, the producer commit the message."
                             + "RequestHeader: {} Remark: {}",
                         RemotingHelper.parseChannelRemoteAddr(ctx.channel()),
@@ -83,7 +85,7 @@ public class EndTransactionProcessor implements NettyRequestProcessor {
                     break;
                 }
 
-                case MessageSysFlag.TRANSACTION_ROLLBACK_TYPE: {
+                case MessageSysFlag.TRANSACTION_ROLLBACK_TYPE: {//rollback
                     LOGGER.warn("Check producer[{}] transaction state, the producer rollback the message."
                             + "RequestHeader: {} Remark: {}",
                         RemotingHelper.parseChannelRemoteAddr(ctx.channel()),
@@ -122,26 +124,36 @@ public class EndTransactionProcessor implements NettyRequestProcessor {
             }
         }
         OperationResult result = new OperationResult();
+        //事务提交
         if (MessageSysFlag.TRANSACTION_COMMIT_TYPE == requestHeader.getCommitOrRollback()) {
+            //从commitLog中查出原始的prepared消息
             result = this.brokerController.getTransactionalMessageService().commitMessage(requestHeader);
             if (result.getResponseCode() == ResponseCode.SUCCESS) {
                 RemotingCommand res = checkPrepareMessage(result.getPrepareMessage(), requestHeader);
                 if (res.getCode() == ResponseCode.SUCCESS) {
+                    //使用原始的prepared消息属性
+                    // 构建最终发给consumer的消息
                     MessageExtBrokerInner msgInner = endMessageTransaction(result.getPrepareMessage());
                     msgInner.setSysFlag(MessageSysFlag.resetTransactionValue(msgInner.getSysFlag(), requestHeader.getCommitOrRollback()));
                     msgInner.setQueueOffset(requestHeader.getTranStateTableOffset());
                     msgInner.setPreparedTransactionOffset(requestHeader.getCommitLogOffset());
                     msgInner.setStoreTimestamp(result.getPrepareMessage().getStoreTimestamp());
                     MessageAccessor.clearProperty(msgInner, MessageConst.PROPERTY_TRANSACTION_PREPARED);
+                    //发送最终消息
                     RemotingCommand sendResult = sendFinalMessage(msgInner);
                     if (sendResult.getCode() == ResponseCode.SUCCESS) {
+                        //发送成功,设置Prepared消息的标记位为delete,
+                        // RMQ_SYS_TRANS_OP_HALF_TOPIC 生成一个新的delete消息来标记
+                        // 删除操作代价太大
                         this.brokerController.getTransactionalMessageService().deletePrepareMessage(result.getPrepareMessage());
                     }
                     return sendResult;
                 }
                 return res;
             }
+        //事务回滚
         } else if (MessageSysFlag.TRANSACTION_ROLLBACK_TYPE == requestHeader.getCommitOrRollback()) {
+            //从commitLog中查出原始的prepared消息
             result = this.brokerController.getTransactionalMessageService().rollbackMessage(requestHeader);
             if (result.getResponseCode() == ResponseCode.SUCCESS) {
                 RemotingCommand res = checkPrepareMessage(result.getPrepareMessage(), requestHeader);

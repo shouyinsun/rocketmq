@@ -30,6 +30,7 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+//producer 管理
 public class ProducerManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final long CHANNEL_EXPIRED_TIMEOUT = 1000 * 120;
@@ -46,7 +47,7 @@ public class ProducerManager {
         return groupChannelTable;
     }
 
-    public void scanNotActiveChannel() {
+    public void scanNotActiveChannel() {//remove expired channel
         for (final Map.Entry<String, ConcurrentHashMap<Channel, ClientChannelInfo>> entry : this.groupChannelTable
                 .entrySet()) {
             final String group = entry.getKey();
@@ -92,7 +93,7 @@ public class ProducerManager {
     }
 
     public synchronized void registerProducer(final String group, final ClientChannelInfo clientChannelInfo) {
-        ClientChannelInfo clientChannelInfoFound = null;
+        ClientChannelInfo clientChannelInfoFound ;
 
         ConcurrentHashMap<Channel, ClientChannelInfo> channelTable = this.groupChannelTable.get(group);
         if (null == channelTable) {
@@ -135,7 +136,7 @@ public class ProducerManager {
         if (groupId == null) {
             return null;
         }
-        List<Channel> channelList = new ArrayList<Channel>();
+        List<Channel> channelList = new ArrayList();
         ConcurrentHashMap<Channel, ClientChannelInfo> channelClientChannelInfoHashMap = groupChannelTable.get(groupId);
         if (channelClientChannelInfoHashMap != null) {
             for (Channel channel : channelClientChannelInfoHashMap.keySet()) {

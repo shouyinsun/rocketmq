@@ -36,7 +36,7 @@ public class EndTransactionRequestHeader implements CommandCustomHeader {
     // TRANSACTION_NOT_TYPE
 
     @CFNullable
-    private Boolean fromTransactionCheck = false;
+    private Boolean fromTransactionCheck = false;//是否来源于broker的事务反查
 
     @CFNotNull
     private String msgId;

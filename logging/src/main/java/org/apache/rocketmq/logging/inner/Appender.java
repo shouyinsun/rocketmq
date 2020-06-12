@@ -138,6 +138,7 @@ public abstract class Appender {
             }
         }
 
+        //给所有appender append log
         public int appendLoopOnAppenders(LoggingEvent event) {
             int size = 0;
             Appender appender;

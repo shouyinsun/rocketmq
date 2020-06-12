@@ -51,6 +51,7 @@ import org.apache.rocketmq.remoting.RPCHook;
 
 import static org.apache.rocketmq.client.trace.TraceConstants.TRACE_INSTANCE_NAME;
 
+//异步日志跟踪
 public class AsyncTraceDispatcher implements TraceDispatcher {
 
     private final static InternalLogger log = ClientLogger.getLog();
@@ -87,10 +88,10 @@ public class AsyncTraceDispatcher implements TraceDispatcher {
         this.type = type;
 
         this.appenderQueue = new ArrayBlockingQueue<Runnable>(queueSize);
-        if (!UtilAll.isBlank(traceTopicName)) {
+        if (!UtilAll.isBlank(traceTopicName)) {//自定义消息跟踪topic
             this.traceTopicName = traceTopicName;
         } else {
-            this.traceTopicName = MixAll.RMQ_SYS_TRACE_TOPIC;
+            this.traceTopicName = MixAll.RMQ_SYS_TRACE_TOPIC;//系统默认topic RMQ_SYS_TRACE_TOPIC
         }
         this.traceExecutor = new ThreadPoolExecutor(//
             10, //

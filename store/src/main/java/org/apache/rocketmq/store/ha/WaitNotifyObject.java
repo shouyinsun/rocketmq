@@ -22,11 +22,12 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 
 import java.util.HashMap;
 
-public class WaitNotifyObject {
+public class WaitNotifyObject {//等待唤醒
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
+    //thread id  -> notified
     protected final HashMap<Long/* thread id */, Boolean/* notified */> waitingThreadTable =
-        new HashMap<Long, Boolean>(16);
+        new HashMap(16);
 
     protected volatile boolean hasNotified = false;
 

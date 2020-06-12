@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
+//broker于client通信
 public class Broker2Client {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -59,7 +60,7 @@ public class Broker2Client {
         this.brokerController = brokerController;
     }
 
-    public void checkProducerTransactionState(
+    public void checkProducerTransactionState(//检查producer事务消息状态
         final String group,
         final Channel channel,
         final CheckTransactionStateRequestHeader requestHeader,
@@ -80,7 +81,7 @@ public class Broker2Client {
         return this.brokerController.getRemotingServer().invokeSync(channel, request, 10000);
     }
 
-    public void notifyConsumerIdsChanged(
+    public void notifyConsumerIdsChanged(//通知consumerId 变化
         final Channel channel,
         final String consumerGroup) {
         if (null == consumerGroup) {
@@ -116,7 +117,7 @@ public class Broker2Client {
             return response;
         }
 
-        Map<MessageQueue, Long> offsetTable = new HashMap<MessageQueue, Long>();
+        Map<MessageQueue, Long> offsetTable = new HashMap();
 
         for (int i = 0; i < topicConfig.getWriteQueueNums(); i++) {
             MessageQueue mq = new MessageQueue();

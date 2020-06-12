@@ -34,20 +34,24 @@ import org.apache.rocketmq.store.config.BrokerRole;
 /**
  * Create MappedFile in advance
  */
+//分配mapped文件服务
+// 提前创建 mappedFile
 public class AllocateMappedFileService extends ServiceThread {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private static int waitTimeOut = 1000 * 5;
+    //filePath -> AllocateRequest
     private ConcurrentMap<String, AllocateRequest> requestTable =
-        new ConcurrentHashMap<String, AllocateRequest>();
-    private PriorityBlockingQueue<AllocateRequest> requestQueue =
-        new PriorityBlockingQueue<AllocateRequest>();
+        new ConcurrentHashMap();
+    //优先级阻塞队列
+    private PriorityBlockingQueue<AllocateRequest> requestQueue =//请求队列
+        new PriorityBlockingQueue();
     private volatile boolean hasException = false;
-    private DefaultMessageStore messageStore;
+    private DefaultMessageStore messageStore;//消息存储
 
     public AllocateMappedFileService(DefaultMessageStore messageStore) {
         this.messageStore = messageStore;
     }
-
+    //请求处理生成mapped 文件
     public MappedFile putRequestAndReturnMappedFile(String nextFilePath, String nextNextFilePath, int fileSize) {
         int canSubmitRequests = 2;
         if (this.messageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
@@ -134,7 +138,7 @@ public class AllocateMappedFileService extends ServiceThread {
     public void run() {
         log.info(this.getServiceName() + " service started");
 
-        while (!this.isStopped() && this.mmapOperation()) {
+        while (!this.isStopped() && this.mmapOperation()) {//一直处理请求,新建初始化mapped文件
 
         }
         log.info(this.getServiceName() + " service end");
@@ -143,11 +147,11 @@ public class AllocateMappedFileService extends ServiceThread {
     /**
      * Only interrupted by the external thread, will return false
      */
-    private boolean mmapOperation() {
+    private boolean mmapOperation() {//初始化mapped 文件
         boolean isSuccess = false;
         AllocateRequest req = null;
         try {
-            req = this.requestQueue.take();
+            req = this.requestQueue.take();//阻塞
             AllocateRequest expectedRequest = this.requestTable.get(req.getFilePath());
             if (null == expectedRequest) {
                 log.warn("this mmap request expired, maybe cause timeout " + req.getFilePath() + " "
@@ -184,12 +188,13 @@ public class AllocateMappedFileService extends ServiceThread {
                 }
 
                 // pre write mappedFile
+                // 预写 mapped文件
                 if (mappedFile.getFileSize() >= this.messageStore.getMessageStoreConfig()
                     .getMappedFileSizeCommitLog()
                     &&
                     this.messageStore.getMessageStoreConfig().isWarmMapedFileEnable()) {
                     mappedFile.warmMappedFile(this.messageStore.getMessageStoreConfig().getFlushDiskType(),
-                        this.messageStore.getMessageStoreConfig().getFlushLeastPagesWhenWarmMapedFile());
+                        this.messageStore.getMessageStoreConfig().getFlushLeastPagesWhenWarmMappedFile());
                 }
 
                 req.setMappedFile(mappedFile);
@@ -217,12 +222,12 @@ public class AllocateMappedFileService extends ServiceThread {
         return true;
     }
 
-    static class AllocateRequest implements Comparable<AllocateRequest> {
+    static class AllocateRequest implements Comparable<AllocateRequest> {//分配请求
         // Full file path
         private String filePath;
-        private int fileSize;
-        private CountDownLatch countDownLatch = new CountDownLatch(1);
-        private volatile MappedFile mappedFile = null;
+        private int fileSize;//文件大小
+        private CountDownLatch countDownLatch = new CountDownLatch(1);//countDownLatch 1
+        private volatile MappedFile mappedFile = null;//mapped 文件
 
         public AllocateRequest(String filePath, int fileSize) {
             this.filePath = filePath;

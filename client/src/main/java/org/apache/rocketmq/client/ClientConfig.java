@@ -32,11 +32,16 @@ import org.apache.rocketmq.remoting.protocol.LanguageCode;
 /**
  * Client Common configuration
  */
+//client 端配置
 public class ClientConfig {
+    //发送消息通过 vip
     public static final String SEND_MESSAGE_WITH_VIP_CHANNEL_PROPERTY = "com.rocketmq.sendMessageWithVIPChannel";
     private String namesrvAddr = NameServerAddressUtils.getNameServerAddresses();
+    //client ip
     private String clientIP = RemotingUtil.getLocalAddress();
+    //client实例名
     private String instanceName = System.getProperty("rocketmq.client.name", "DEFAULT");
+    //client 回调线程数
     private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
     protected String namespace;
     protected AccessChannel accessChannel = AccessChannel.LOCAL;
@@ -44,25 +49,29 @@ public class ClientConfig {
     /**
      * Pulling topic information interval from the named server
      */
+    //从namesrv同步topic信息间隔，默认30s
     private int pollNameServerInterval = 1000 * 30;
     /**
      * Heartbeat interval in microseconds with message broker
      */
+    //向broker发心跳间隔
     private int heartbeatBrokerInterval = 1000 * 30;
     /**
      * Offset persistent interval for consumer
      */
+    //consumer偏移量持久化间隔
     private int persistConsumerOffsetInterval = 1000 * 5;
     private long pullTimeDelayMillsWhenException = 1000;
     private boolean unitMode = false;
     private String unitName;
+    //是否切换成vip
     private boolean vipChannelEnabled = Boolean.parseBoolean(System.getProperty(SEND_MESSAGE_WITH_VIP_CHANNEL_PROPERTY, "false"));
 
     private boolean useTLS = TlsSystemConfig.tlsEnable;
 
     private LanguageCode language = LanguageCode.JAVA;
 
-    public String buildMQClientId() {
+    public String buildMQClientId() {//clientId
         StringBuilder sb = new StringBuilder();
         sb.append(this.getClientIP());
 
@@ -92,7 +101,7 @@ public class ClientConfig {
         this.instanceName = instanceName;
     }
 
-    public void changeInstanceNameToPID() {
+    public void changeInstanceNameToPID() {//default 实例名 改为 pid
         if (this.instanceName.equals("DEFAULT")) {
             this.instanceName = String.valueOf(UtilAll.getPid());
         }

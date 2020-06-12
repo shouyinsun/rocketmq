@@ -43,14 +43,17 @@ public class FilterAPI {
         subscriptionData.setSubString(subString);
 
         if (null == subString || subString.equals(SubscriptionData.SUB_ALL) || subString.length() == 0) {
+            //订阅所有
             subscriptionData.setSubString(SubscriptionData.SUB_ALL);
         } else {
+            // ||分割 多tag
             String[] tags = subString.split("\\|\\|");
             if (tags.length > 0) {
                 for (String tag : tags) {
                     if (tag.length() > 0) {
                         String trimString = tag.trim();
                         if (trimString.length() > 0) {
+                            //tag set
                             subscriptionData.getTagsSet().add(trimString);
                             subscriptionData.getCodeSet().add(trimString.hashCode());
                         }
@@ -66,14 +69,14 @@ public class FilterAPI {
 
     public static SubscriptionData build(final String topic, final String subString,
         final String type) throws Exception {
-        if (ExpressionType.TAG.equals(type) || type == null) {
+        if (ExpressionType.TAG.equals(type) || type == null) {//订阅内容类型为tag或者为null
             return buildSubscriptionData(null, topic, subString);
         }
 
         if (subString == null || subString.length() < 1) {
             throw new IllegalArgumentException("Expression can't be null! " + type);
         }
-
+        //非 tag 类型
         SubscriptionData subscriptionData = new SubscriptionData();
         subscriptionData.setTopic(topic);
         subscriptionData.setSubString(subString);

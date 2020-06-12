@@ -80,6 +80,7 @@ public class MessageDecoder {
         return UtilAll.bytes2string(byteBuffer.array());
     }
 
+    //msgId string to MessageId object
     public static MessageId decodeMessageId(final String msgId) throws UnknownHostException {
         SocketAddress address;
         long offset;
@@ -395,7 +396,7 @@ public class MessageDecoder {
     }
 
     public static List<MessageExt> decodes(java.nio.ByteBuffer byteBuffer, final boolean readBody) {
-        List<MessageExt> msgExts = new ArrayList<MessageExt>();
+        List<MessageExt> msgExts = new ArrayList();
         while (byteBuffer.hasRemaining()) {
             MessageExt msgExt = clientDecode(byteBuffer, readBody);
             if (null != msgExt) {

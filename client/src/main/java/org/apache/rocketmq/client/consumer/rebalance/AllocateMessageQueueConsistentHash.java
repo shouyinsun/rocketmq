@@ -30,10 +30,13 @@ import org.apache.rocketmq.common.message.MessageQueue;
 /**
  * Consistent Hashing queue algorithm
  */
+//一致性hash 队列分配
 public class AllocateMessageQueueConsistentHash implements AllocateMessageQueueStrategy {
     private final InternalLogger log = ClientLogger.getLog();
 
+    //每个物理节点的虚拟节点数
     private final int virtualNodeCnt;
+    //自定义hash算法
     private final HashFunction customHashFunction;
 
     public AllocateMessageQueueConsistentHash() {
@@ -66,7 +69,7 @@ public class AllocateMessageQueueConsistentHash implements AllocateMessageQueueS
             throw new IllegalArgumentException("cidAll is null or cidAll empty");
         }
 
-        List<MessageQueue> result = new ArrayList<MessageQueue>();
+        List<MessageQueue> result = new ArrayList();
         if (!cidAll.contains(currentCID)) {
             log.info("[BUG] ConsumerGroup: {} The consumerId: {} not in cidAll: {}",
                 consumerGroup,
@@ -75,19 +78,19 @@ public class AllocateMessageQueueConsistentHash implements AllocateMessageQueueS
             return result;
         }
 
-        Collection<ClientNode> cidNodes = new ArrayList<ClientNode>();
+        Collection<ClientNode> cidNodes = new ArrayList();
         for (String cid : cidAll) {
             cidNodes.add(new ClientNode(cid));
         }
 
         final ConsistentHashRouter<ClientNode> router; //for building hash ring
         if (customHashFunction != null) {
-            router = new ConsistentHashRouter<ClientNode>(cidNodes, virtualNodeCnt, customHashFunction);
+            router = new ConsistentHashRouter(cidNodes, virtualNodeCnt, customHashFunction);
         } else {
-            router = new ConsistentHashRouter<ClientNode>(cidNodes, virtualNodeCnt);
+            router = new ConsistentHashRouter(cidNodes, virtualNodeCnt);
         }
 
-        List<MessageQueue> results = new ArrayList<MessageQueue>();
+        List<MessageQueue> results = new ArrayList();
         for (MessageQueue mq : mqAll) {
             ClientNode clientNode = router.routeNode(mq.toString());
             if (clientNode != null && currentCID.equals(clientNode.getKey())) {

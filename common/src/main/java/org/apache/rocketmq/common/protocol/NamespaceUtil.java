@@ -67,19 +67,21 @@ public class NamespaceUtil {
      * @param namespace, namespace to be unpacked.
      * @return topic/groupId without namespace.
      */
-    public static String withoutNamespace(String resourceWithNamespace, String namespace) {
+    public static String withoutNamespace(String resourceWithNamespace, String namespace) {//移除资源中的namespace信息
         if (StringUtils.isEmpty(resourceWithNamespace) || StringUtils.isEmpty(namespace)) {
             return resourceWithNamespace;
         }
 
         String resourceWithoutRetryAndDLQ = withOutRetryAndDLQ(resourceWithNamespace);
         if (resourceWithoutRetryAndDLQ.startsWith(namespace + NAMESPACE_SEPARATOR)) {
+            //保留 %RETRY% 和 %DLQ%
             return withoutNamespace(resourceWithNamespace);
         }
 
         return resourceWithNamespace;
     }
 
+    // namespace%resourceName
     public static String wrapNamespace(String namespace, String resourceWithOutNamespace) {
         if (StringUtils.isEmpty(namespace) || StringUtils.isEmpty(resourceWithOutNamespace)) {
             return resourceWithOutNamespace;

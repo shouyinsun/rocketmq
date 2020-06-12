@@ -208,7 +208,7 @@ public class BrokerStatsManager {
         return strBuilder.toString();
     }
 
-    public enum StatsType {
+    public enum StatsType {//统计类型
         SEND_SUCCESS,
         SEND_FAILURE,
         SEND_BACK,

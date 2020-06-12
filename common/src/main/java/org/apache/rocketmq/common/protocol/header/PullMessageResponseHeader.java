@@ -26,7 +26,7 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
 public class PullMessageResponseHeader implements CommandCustomHeader {
     @CFNotNull
-    private Long suggestWhichBrokerId;
+    private Long suggestWhichBrokerId;//建议的brokerId
     @CFNotNull
     private Long nextBeginOffset;
     @CFNotNull

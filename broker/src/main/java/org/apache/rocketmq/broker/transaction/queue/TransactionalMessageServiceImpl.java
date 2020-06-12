@@ -60,7 +60,7 @@ public class TransactionalMessageServiceImpl implements TransactionalMessageServ
     private ConcurrentHashMap<MessageQueue, MessageQueue> opQueueMap = new ConcurrentHashMap<>();
 
     @Override
-    public PutMessageResult prepareMessage(MessageExtBrokerInner messageInner) {
+    public PutMessageResult prepareMessage(MessageExtBrokerInner messageInner) {//prepare消息
         return transactionalMessageBridge.putHalfMessage(messageInner);
     }
 
@@ -460,6 +460,7 @@ public class TransactionalMessageServiceImpl implements TransactionalMessageServ
 
     @Override
     public boolean deletePrepareMessage(MessageExt msgExt) {
+        //添加了一条删除的消息
         if (this.transactionalMessageBridge.putOpMessage(msgExt, TransactionalMessageUtil.REMOVETAG)) {
             log.debug("Transaction op message write successfully. messageId={}, queueId={} msgExt:{}", msgExt.getMsgId(), msgExt.getQueueId(), msgExt);
             return true;

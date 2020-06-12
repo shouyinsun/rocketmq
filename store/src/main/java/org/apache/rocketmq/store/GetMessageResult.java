@@ -23,18 +23,20 @@ import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
 public class GetMessageResult {
 
+    //消息
     private final List<SelectMappedBufferResult> messageMapedList =
-        new ArrayList<SelectMappedBufferResult>(100);
+        new ArrayList(100);
 
-    private final List<ByteBuffer> messageBufferList = new ArrayList<ByteBuffer>(100);
+    private final List<ByteBuffer> messageBufferList = new ArrayList(100);
 
     private GetMessageStatus status;
-    private long nextBeginOffset;
+    private long nextBeginOffset;//下次开始偏移
     private long minOffset;
     private long maxOffset;
 
     private int bufferTotalSize = 0;
 
+    //建议从从节点拉取,默认false
     private boolean suggestPullingFromSlave = false;
 
     private int msgCount4Commercial = 0;

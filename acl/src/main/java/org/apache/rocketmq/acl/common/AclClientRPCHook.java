@@ -28,6 +28,7 @@ import static org.apache.rocketmq.acl.common.SessionCredentials.ACCESS_KEY;
 import static org.apache.rocketmq.acl.common.SessionCredentials.SECURITY_TOKEN;
 import static org.apache.rocketmq.acl.common.SessionCredentials.SIGNATURE;
 
+//acl 客户端rpc hook
 public class AclClientRPCHook implements RPCHook {
     private final SessionCredentials sessionCredentials;
     protected ConcurrentHashMap<Class<? extends CommandCustomHeader>, Field[]> fieldCache =
@@ -38,14 +39,16 @@ public class AclClientRPCHook implements RPCHook {
     }
 
     @Override
-    public void doBeforeRequest(String remoteAddr, RemotingCommand request) {
+    public void doBeforeRequest(String remoteAddr, RemotingCommand request) {//pre request
         byte[] total = AclUtils.combineRequestContent(request,
             parseRequestContent(request, sessionCredentials.getAccessKey(), sessionCredentials.getSecurityToken()));
+        //签名
         String signature = AclUtils.calSignature(total, sessionCredentials.getSecretKey());
         request.addExtField(SIGNATURE, signature);
+        //AccessKey
         request.addExtField(ACCESS_KEY, sessionCredentials.getAccessKey());
         
-        // The SecurityToken value is unneccessary,user can choose this one.
+        // The SecurityToken value is unNecessary,user can choose this one.
         if (sessionCredentials.getSecurityToken() != null) {
             request.addExtField(SECURITY_TOKEN, sessionCredentials.getSecurityToken());
         }
@@ -57,9 +60,10 @@ public class AclClientRPCHook implements RPCHook {
     }
 
     protected SortedMap<String, String> parseRequestContent(RemotingCommand request, String ak, String securityToken) {
+        //自定义头信息
         CommandCustomHeader header = request.readCustomHeader();
         // Sort property
-        SortedMap<String, String> map = new TreeMap<String, String>();
+        SortedMap<String, String> map = new TreeMap();
         map.put(ACCESS_KEY, ak);
         if (securityToken != null) {
             map.put(SECURITY_TOKEN, securityToken);

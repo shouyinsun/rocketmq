@@ -23,14 +23,17 @@ package org.apache.rocketmq.common.protocol.heartbeat;
 /**
  * Message model
  */
+//消息消费类型 广播、集群
 public enum MessageModel {
     /**
      * broadcast
      */
+    //所有consumer都能消费
     BROADCASTING("BROADCASTING"),
     /**
      * clustering
      */
+    //同一个消费组只有一个consumer能消费
     CLUSTERING("CLUSTERING");
 
     private String modeCN;

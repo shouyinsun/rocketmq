@@ -40,15 +40,17 @@ import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+//topic 配置管理
 public class TopicConfigManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final long LOCK_TIMEOUT_MILLIS = 3000;
     private transient final Lock lockTopicConfigTable = new ReentrantLock();
-
+    //topicName -> topic配置
     private final ConcurrentMap<String, TopicConfig> topicConfigTable =
-        new ConcurrentHashMap<String, TopicConfig>(1024);
+        new ConcurrentHashMap(1024);
     private final DataVersion dataVersion = new DataVersion();
-    private final Set<String> systemTopicList = new HashSet<String>();
+    //系统类topic
+    private final Set<String> systemTopicList = new HashSet();
     private transient BrokerController brokerController;
 
     public TopicConfigManager() {
@@ -56,7 +58,9 @@ public class TopicConfigManager extends ConfigManager {
 
     public TopicConfigManager(BrokerController brokerController) {
         this.brokerController = brokerController;
-        {
+
+        //初始化，系统类topic
+        {//SELF_TEST_TOPIC
             // MixAll.SELF_TEST_TOPIC
             String topic = MixAll.SELF_TEST_TOPIC;
             TopicConfig topicConfig = new TopicConfig(topic);
@@ -65,7 +69,7 @@ public class TopicConfigManager extends ConfigManager {
             topicConfig.setWriteQueueNums(1);
             this.topicConfigTable.put(topicConfig.getTopicName(), topicConfig);
         }
-        {
+        {//TBW102 自动创建topic
             // MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC
             if (this.brokerController.getBrokerConfig().isAutoCreateTopicEnable()) {
                 String topic = MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC;
@@ -80,7 +84,7 @@ public class TopicConfigManager extends ConfigManager {
                 this.topicConfigTable.put(topicConfig.getTopicName(), topicConfig);
             }
         }
-        {
+        {//BENCHMARK_TOPIC
             // MixAll.BENCHMARK_TOPIC
             String topic = MixAll.BENCHMARK_TOPIC;
             TopicConfig topicConfig = new TopicConfig(topic);
@@ -89,7 +93,7 @@ public class TopicConfigManager extends ConfigManager {
             topicConfig.setWriteQueueNums(1024);
             this.topicConfigTable.put(topicConfig.getTopicName(), topicConfig);
         }
-        {
+        {//broker集群名 topic
 
             String topic = this.brokerController.getBrokerConfig().getBrokerClusterName();
             TopicConfig topicConfig = new TopicConfig(topic);
@@ -101,7 +105,7 @@ public class TopicConfigManager extends ConfigManager {
             topicConfig.setPerm(perm);
             this.topicConfigTable.put(topicConfig.getTopicName(), topicConfig);
         }
-        {
+        {//broker名 topic
 
             String topic = this.brokerController.getBrokerConfig().getBrokerName();
             TopicConfig topicConfig = new TopicConfig(topic);
@@ -115,7 +119,7 @@ public class TopicConfigManager extends ConfigManager {
             topicConfig.setPerm(perm);
             this.topicConfigTable.put(topicConfig.getTopicName(), topicConfig);
         }
-        {
+        {//OFFSET_MOVED_EVENT
             // MixAll.OFFSET_MOVED_EVENT
             String topic = MixAll.OFFSET_MOVED_EVENT;
             TopicConfig topicConfig = new TopicConfig(topic);
@@ -134,7 +138,7 @@ public class TopicConfigManager extends ConfigManager {
                 this.topicConfigTable.put(topicConfig.getTopicName(), topicConfig);
             }
         }
-        {
+        {//${clusterName}_REPLY_TOPIC
             String topic = this.brokerController.getBrokerConfig().getBrokerClusterName() + "_" + MixAll.REPLY_TOPIC_POSTFIX;
             TopicConfig topicConfig = new TopicConfig(topic);
             this.systemTopicList.add(topic);
@@ -171,12 +175,14 @@ public class TopicConfigManager extends ConfigManager {
                     TopicConfig defaultTopicConfig = this.topicConfigTable.get(defaultTopic);
                     if (defaultTopicConfig != null) {
                         if (defaultTopic.equals(MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC)) {
+                            //topic不存在,不允许自动创建topic
                             if (!this.brokerController.getBrokerConfig().isAutoCreateTopicEnable()) {
+                                //110
                                 defaultTopicConfig.setPerm(PermName.PERM_READ | PermName.PERM_WRITE);
                             }
                         }
 
-                        if (PermName.isInherited(defaultTopicConfig.getPerm())) {
+                        if (PermName.isInherited(defaultTopicConfig.getPerm())) {//设置不能自动创建,则不能创建
                             topicConfig = new TopicConfig(topic);
 
                             int queueNums =
@@ -267,7 +273,7 @@ public class TopicConfigManager extends ConfigManager {
             log.error("createTopicInSendMessageBackMethod exception", e);
         }
 
-        if (createNew) {
+        if (createNew) {//注册
             this.brokerController.registerBrokerAll(false, true, true);
         }
 
@@ -436,7 +442,7 @@ public class TopicConfigManager extends ConfigManager {
     }
 
     @Override
-    public String configFilePath() {
+    public String configFilePath() {// config/topics.json
         return BrokerPathConfigHelper.getTopicConfigPath(this.brokerController.getMessageStoreConfig()
             .getStorePathRootDir());
     }

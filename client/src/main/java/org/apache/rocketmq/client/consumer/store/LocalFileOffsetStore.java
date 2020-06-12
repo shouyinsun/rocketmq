@@ -38,6 +38,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 /**
  * Local storage implementation
  */
+//本地文件存储消费偏移
 public class LocalFileOffsetStore implements OffsetStore {
     public final static String LOCAL_OFFSET_STORE_DIR = System.getProperty(
         "rocketmq.client.localOffsetStoreDir",
@@ -46,8 +47,9 @@ public class LocalFileOffsetStore implements OffsetStore {
     private final MQClientInstance mQClientFactory;
     private final String groupName;
     private final String storePath;
+    //offset偏移   MessageQueue -> offset
     private ConcurrentMap<MessageQueue, AtomicLong> offsetTable =
-        new ConcurrentHashMap<MessageQueue, AtomicLong>();
+        new ConcurrentHashMap();
 
     public LocalFileOffsetStore(MQClientInstance mQClientFactory, String groupName) {
         this.mQClientFactory = mQClientFactory;
@@ -187,10 +189,10 @@ public class LocalFileOffsetStore implements OffsetStore {
         } catch (IOException e) {
             log.warn("Load local offset store file exception", e);
         }
-        if (null == content || content.length() == 0) {
+        if (null == content || content.length() == 0) {//bak文件
             return this.readLocalOffsetBak();
         } else {
-            OffsetSerializeWrapper offsetSerializeWrapper = null;
+            OffsetSerializeWrapper offsetSerializeWrapper ;
             try {
                 offsetSerializeWrapper =
                     OffsetSerializeWrapper.fromJson(content, OffsetSerializeWrapper.class);

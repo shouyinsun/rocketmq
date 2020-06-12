@@ -38,6 +38,7 @@ public interface MQConsumerInner {
 
     Set<SubscriptionData> subscriptions();
 
+    //reBalance 重平衡
     void doRebalance();
 
     void persistConsumerOffset();

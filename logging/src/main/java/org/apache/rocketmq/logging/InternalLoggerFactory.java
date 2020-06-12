@@ -23,6 +23,7 @@ public abstract class InternalLoggerFactory {
 
     public static final String LOGGER_SLF4J = "slf4j";
 
+    //inner 类型
     public static final String LOGGER_INNER = "inner";
 
     public static final String DEFAULT_LOGGER = LOGGER_SLF4J;
@@ -61,12 +62,12 @@ public abstract class InternalLoggerFactory {
     }
 
     static {
-        try {
+        try {//有slf4j
             new Slf4jLoggerFactory();
         } catch (Throwable e) {
             //ignore
         }
-        try {
+        try {//内部实现日志工厂
             new InnerLoggerFactory();
         } catch (Throwable e) {
             //ignore

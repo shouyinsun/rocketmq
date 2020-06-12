@@ -23,6 +23,7 @@ public class SendResult {
     private SendStatus sendStatus;
     private String msgId;
     private MessageQueue messageQueue;
+    //队列偏移
     private long queueOffset;
     private String transactionId;
     private String offsetMsgId;

@@ -71,6 +71,7 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
+//默认的lite拉取消费者实现
 public class DefaultLitePullConsumerImpl implements MQConsumerInner {
 
     private final InternalLogger log = ClientLogger.getLog();
@@ -903,7 +904,7 @@ public class DefaultLitePullConsumerImpl implements MQConsumerInner {
     public void persistConsumerOffset() {
         try {
             checkServiceState();
-            Set<MessageQueue> mqs = new HashSet<MessageQueue>();
+            Set<MessageQueue> mqs = new HashSet();
             if (this.subscriptionType == SubscriptionType.SUBSCRIBE) {
                 Set<MessageQueue> allocateMq = this.rebalanceImpl.getProcessQueueTable().keySet();
                 mqs.addAll(allocateMq);
