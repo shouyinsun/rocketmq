@@ -560,7 +560,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
     }
 
-    //默认发送实现
+    //默认发送实现，queue轮询
     private SendResult sendDefaultImpl(
         Message msg,
         final CommunicationMode communicationMode,
@@ -1140,7 +1140,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         return this.sendSelectImpl(msg, selector, arg, CommunicationMode.SYNC, null, timeout);
     }
 
-    //选择发送实现
+    //选择发送实现，指定MessageQueueSelector 自己选择queue
     private SendResult sendSelectImpl(
         Message msg,
         MessageQueueSelector selector,

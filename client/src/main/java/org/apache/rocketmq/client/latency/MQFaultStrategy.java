@@ -23,11 +23,12 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 //容错策略
+// broker发送高耗时(故障),会规避一段时间
 public class MQFaultStrategy {
     private final static InternalLogger log = ClientLogger.getLog();
     private final LatencyFaultTolerance<String> latencyFaultTolerance = new LatencyFaultToleranceImpl();
 
-    //延时容错
+    //故障延时容错
     private boolean sendLatencyFaultEnable = false;
 
     //latencyMax 与 notAvailableDuration 一一对应
@@ -62,7 +63,7 @@ public class MQFaultStrategy {
     }
 
     public MessageQueue selectOneMessageQueue(final TopicPublishInfo tpInfo, final String lastBrokerName) {
-        if (this.sendLatencyFaultEnable) {//开启延时容错
+        if (this.sendLatencyFaultEnable) {//开启故障延时容错
             try {
                 //第一次还是选择threadLocal里的索引对应的队列
                 // index+1

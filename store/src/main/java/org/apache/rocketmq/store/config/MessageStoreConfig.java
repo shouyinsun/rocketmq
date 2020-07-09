@@ -161,8 +161,11 @@ public class MessageStoreConfig {
     //启用 dlegerCommitLog
     //dledger 基于raft算法,可以自动容灾切换节点
     private boolean enableDLegerCommitLog = false;
+    //dledger组
     private String dLegerGroup;
+    //dledger peers信息
     private String dLegerPeers;
+    //dledger selfId
     private String dLegerSelfId;
 
     public boolean isDebugLockEnable() {

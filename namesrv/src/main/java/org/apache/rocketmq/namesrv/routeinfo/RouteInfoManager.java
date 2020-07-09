@@ -49,7 +49,7 @@ import org.apache.rocketmq.remoting.common.RemotingUtil;
 // 本地内存
 public class RouteInfoManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
-    //broker 超时时间
+    //broker 超时时间 120s
     private final static long BROKER_CHANNEL_EXPIRED_TIME = 1000 * 60 * 2;
     //读写锁
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -526,7 +526,7 @@ public class RouteInfoManager {
                             }
                         }
 
-                        if (brokerData.getBrokerAddrs().isEmpty()) {
+                        if (brokerData.getBrokerAddrs().isEmpty()) {//empty，移除brokerName
                             removeBrokerName = true;
                             itBrokerAddrTable.remove();
                             log.info("remove brokerName[{}] from brokerAddrTable, because channel destroyed",
@@ -545,7 +545,7 @@ public class RouteInfoManager {
                                 log.info("remove brokerName[{}], clusterName[{}] from clusterAddrTable, because channel destroyed",
                                     brokerNameFound, clusterName);
 
-                                if (brokerNames.isEmpty()) {
+                                if (brokerNames.isEmpty()) {//empty，移除clusterName
                                     log.info("remove the clusterName[{}] from clusterAddrTable, because channel destroyed and no broker in this cluster",
                                         clusterName);
                                     it.remove();
@@ -556,7 +556,7 @@ public class RouteInfoManager {
                         }
                     }
 
-                    if (removeBrokerName) {
+                    if (removeBrokerName) {//移除队列
                         Iterator<Entry<String, List<QueueData>>> itTopicQueueTable =
                             this.topicQueueTable.entrySet().iterator();
                         while (itTopicQueueTable.hasNext()) {
@@ -574,7 +574,7 @@ public class RouteInfoManager {
                                 }
                             }
 
-                            if (queueDataList.isEmpty()) {
+                            if (queueDataList.isEmpty()) {//empty，移除topic
                                 itTopicQueueTable.remove();
                                 log.info("remove topic[{}] all queue, from topicQueueTable, because channel destroyed",
                                     topic);

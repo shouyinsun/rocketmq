@@ -53,6 +53,7 @@ import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 /**
  * Store all metadata downtime for recovery, data protection reliability
  */
+//dleger commitLog
 public class DLedgerCommitLog extends CommitLog {
     //基于raft协议实现的集群内的一个节点
     // 用DLedgerServer实例表示

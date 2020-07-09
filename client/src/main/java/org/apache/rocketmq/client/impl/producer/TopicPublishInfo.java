@@ -28,7 +28,8 @@ public class TopicPublishInfo {
     private boolean orderTopic = false;
     private boolean haveTopicRouterInfo = false;
     private List<MessageQueue> messageQueueList = new ArrayList();
-    //threadLocal 队列索引
+    //threadLocal 队列索引，发送一次 +1
+    // 轮询queue
     private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
     private TopicRouteData topicRouteData;
 
