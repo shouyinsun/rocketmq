@@ -28,7 +28,8 @@ import org.apache.rocketmq.store.config.MessageStoreConfig;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
-public class TransientStorePool {//存储池
+//提供一种内存锁定、将当前堆外内存一直锁定在内存中,避免被进程将内存交换到磁盘,提高存储性能
+public class TransientStorePool {//堆外内存,存储池
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
     private final int poolSize;
@@ -54,6 +55,7 @@ public class TransientStorePool {//存储池
             final long address = ((DirectBuffer) byteBuffer).address();
             //指针
             Pointer pointer = new Pointer(address);
+            //mlock，防止内存swap到磁盘
             LibC.INSTANCE.mlock(pointer, new NativeLong(fileSize));
 
             availableBuffers.offer(byteBuffer);

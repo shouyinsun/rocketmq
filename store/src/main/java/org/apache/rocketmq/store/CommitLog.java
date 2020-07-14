@@ -645,7 +645,7 @@ public class CommitLog {
             switch (result.getStatus()) {
                 case PUT_OK://成功
                     break;
-                case END_OF_FILE://、如果文件已满,则新建一个文件继续
+                case END_OF_FILE://如果文件已满,则新建一个文件继续
                     //已经写满的文件
                     unlockMappedFile = mappedFile;
                     // Create a new file, re-write the message
@@ -815,7 +815,7 @@ public class CommitLog {
             switch (result.getStatus()) {
                 case PUT_OK:
                     break;
-                case END_OF_FILE:
+                case END_OF_FILE://文件结尾、创建个新文件
                     unlockMappedFile = mappedFile;
                     // Create a new file, re-write the message
                     mappedFile = this.mappedFileQueue.getLastMappedFile(0);
@@ -1297,7 +1297,7 @@ public class CommitLog {
             //前8位是host,后8位是wroteOffset,目的是便于使用msgId来查找消息
             String msgId;
             //msgId
-            // broker服务器地址storeHost+物理偏移offsetA
+            // broker服务器地址storeHost+物理偏移offset
             if ((sysflag & MessageSysFlag.STOREHOSTADDRESS_V6_FLAG) == 0) {
                 msgId = MessageDecoder.createMessageId(this.msgIdMemory, msgInner.getStoreHostBytes(storeHostHolder), wroteOffset);
             } else {
@@ -1491,6 +1491,7 @@ public class CommitLog {
                 // Determines whether there is sufficient free space
                 if ((totalMsgLen + END_FILE_MIN_BLANK_LENGTH) > maxBlank) {
                     this.resetByteBuffer(this.msgStoreItemMemory, 8);
+                    //文件结尾,写入 BLANK_MAGIC_CODE
                     // 1 TOTALSIZE
                     this.msgStoreItemMemory.putInt(maxBlank);
                     // 2 MAGICCODE

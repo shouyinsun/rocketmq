@@ -57,6 +57,7 @@ public class MappedFile extends ReferenceResource {
     /**
      * Message will put to here first, and then reput to FileChannel if writeBuffer is not null.
      */
+    //transientStorePoolEnable 堆外内存
     protected ByteBuffer writeBuffer = null;//消息先存放在byteBuffer中,然后写入FileChannel
     protected TransientStorePool transientStorePool = null;
     private String fileName;
@@ -147,6 +148,7 @@ public class MappedFile extends ReferenceResource {
     public void init(final String fileName, final int fileSize,
         final TransientStorePool transientStorePool) throws IOException {
         init(fileName, fileSize);
+        //借 buffer
         this.writeBuffer = transientStorePool.borrowBuffer();
         this.transientStorePool = transientStorePool;
     }
