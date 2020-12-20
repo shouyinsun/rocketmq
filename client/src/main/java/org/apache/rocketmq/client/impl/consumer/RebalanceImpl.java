@@ -237,7 +237,7 @@ public abstract class RebalanceImpl {
                 }
             }
         }
-
+        //检查是否有的queue已经不归自己负责消费,是的话就释放缓存message的queue
         this.truncateMessageQueueNotMyTopic();
     }
 

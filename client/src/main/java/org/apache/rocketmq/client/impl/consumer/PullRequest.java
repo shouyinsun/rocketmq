@@ -25,6 +25,7 @@ public class PullRequest {
     private MessageQueue messageQueue;
     //处理 队列
     private ProcessQueue processQueue;
+    //下一offset
     private long nextOffset;
     private boolean lockedFirst = false;
 

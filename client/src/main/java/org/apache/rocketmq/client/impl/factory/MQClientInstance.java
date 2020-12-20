@@ -253,7 +253,7 @@ public class MQClientInstance {
                     //mqClient (netty client)启动
                     this.mQClientAPIImpl.start();
                     // Start various schedule tasks
-                    //定时任务
+                    //多个定时任务
                     this.startScheduledTask();
                     // Start pull service
                     // 开始处理PullRequest
@@ -288,7 +288,7 @@ public class MQClientInstance {
                 }
             }, 1000 * 10, 1000 * 60 * 2, TimeUnit.MILLISECONDS);
         }
-
+        //从nameSrv更新路由信息
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {//从namesrv同步topic路由信息 默认30s
 
             @Override
@@ -300,7 +300,6 @@ public class MQClientInstance {
                 }
             }
         }, 10, this.clientConfig.getPollNameServerInterval(), TimeUnit.MILLISECONDS);
-
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {//清理过期broker和向broker发送心跳
 
             @Override
@@ -314,7 +313,7 @@ public class MQClientInstance {
                 }
             }
         }, 1000, this.clientConfig.getHeartbeatBrokerInterval(), TimeUnit.MILLISECONDS);
-
+        //持久化所有消费偏移
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {//持久化所有consumer的消费偏移
 
             @Override
@@ -326,7 +325,8 @@ public class MQClientInstance {
                 }
             }
         }, 1000 * 10, this.clientConfig.getPersistConsumerOffsetInterval(), TimeUnit.MILLISECONDS);
-
+        //对于PushConsumer
+        // 根据负载调整本地处理消息的线程池corePool大小
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {//调整线程池
 
             @Override
